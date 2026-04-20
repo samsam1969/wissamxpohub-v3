@@ -1,0 +1,7 @@
+﻿f = open("WissamXpoHub_V3_Frontend_FIXED.html", encoding="utf-8")
+html = f.read()
+f.close()
+s = html.find("<!-- PRODUCT SETUP + AI ADVISOR -->")
+e = html.find("</div><!-- end .wrap -->")
+print("Section size:", e-s)
+print(repr(html[s:s+300]))

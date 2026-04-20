@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<title>Admin - Knowledge Base</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Cairo,Arial,sans-serif;background:#0f0e17;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:20px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(99,102,241,.3)}
+.header h1{font-size:22px;color:#a5b4fc}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:16px;text-align:center}
+.stat-num{font-size:28px;font-weight:800;color:#a5b4fc}
+.stat-label{font-size:12px;color:#6b7280;margin-top:4px}
+.toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.btn{padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-family:Cairo,Arial,sans-serif;font-weight:700;font-size:13px}
+.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white}
+.btn-danger{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.btn-success{background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+.btn-sm{padding:5px 10px;font-size:12px}
+select,input{background:rgba(255,255,255,.05);border:1px solid rgba(99,102,241,.3);border-radius:8px;color:#e2e8f0;padding:8px 12px;font-family:Cairo,Arial,sans-serif;font-size:13px}
+table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden}
+thead{background:rgba(99,102,241,.2)}
+th{padding:12px 16px;text-align:right;font-size:12px;color:#a5b4fc;font-weight:700}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+tr:hover td{background:rgba(99,102,241,.05)}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.bs{background:rgba(59,130,246,.2);color:#60a5fa}
+.bp{background:rgba(34,197,94,.2);color:#4ade80}
+.br{background:rgba(239,68,68,.2);color:#f87171}
+.bm{background:rgba(245,158,11,.2);color:#fbbf24}
+.bb{background:rgba(139,92,246,.2);color:#c4b5fd}
+.ay{color:#4ade80}.an{color:#f87171}.ph{color:#fbbf24;font-weight:800}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;justify-content:center;align-items:center}
+.modal.open{display:flex}
+.mbox{background:#1e1b4b;border:1px solid rgba(99,102,241,.4);border-radius:20px;padding:28px;width:95%;max-width:640px;max-height:90vh;overflow-y:auto}
+.mtitle{font-size:18px;font-weight:800;color:#a5b4fc;margin-bottom:20px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:12px;color:#9ca3af;margin-bottom:6px;font-weight:700}
+.fg input,.fg select,.fg textarea{width:100%}
+textarea{min-height:120px;resize:vertical}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.cprev{max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9ca3af;font-size:12px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:10px;font-weight:700;display:none;z-index:9999}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="header">
+  <h1>Knowledge Base Admin</h1>
+  <span id="adminEmail">جاري التحقق...</span>
+</div>
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="totalCount">-</div><div class="stat-label">اجمالي</div></div>
+    <div class="stat"><div class="stat-num" id="activeCount">-</div><div class="stat-label">نشط</div></div>
+    <div class="stat"><div class="stat-num" id="catCount">-</div><div class="stat-label">فئات</div></div>
+    <div class="stat"><div class="stat-num" id="highPriority">-</div><div class="stat-label">اولوية 8+</div></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-primary" id="btnAdd">اضافة سجل جديد</button>
+    <select id="filterCat"><option value="">كل الفئات</option><option value="shipping">shipping</option><option value="pricing">pricing</option><option value="regulations">regulations</option><option value="market">market</option><option value="buyers">buyers</option></select>
+    <select id="filterActive"><option value="">الكل</option><option value="true">نشط</option><option value="false">معطل</option></select>
+    <input id="searchInput" placeholder="بحث..."/>
+    <button class="btn btn-success btn-sm" id="btnRefresh">تحديث</button>
+  </div>
+  <table>
+    <thead><tr><th>الفئة</th><th>العنوان</th><th>المحتوى</th><th>HS</th><th>السوق</th><th>الاولوية</th><th>الحالة</th><th>المصدر</th><th>اجراءات</th></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="mtitle" id="modalTitle">اضافة سجل</div>
+    <input type="hidden" id="editId"/>
+    <div class="frow">
+      <div class="fg"><label>الفئة</label><select id="fCategory"><option value="shipping">shipping</option><option value="pricing">pricing</option><option value="regulations">regulations</option><option value="market">market</option><option value="buyers">buyers</option></select></div>
+      <div class="fg"><label>الاولوية 1-10</label><input type="number" id="fPriority" min="1" max="10" value="5"/></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>HS Code</label><input type="text" id="fHsCode" placeholder="081110"/></div>
+      <div class="fg"><label>السوق</label><input type="text" id="fMarket" placeholder="Germany"/></div>
+    </div>
+    <div class="fg"><label>العنوان</label><input type="text" id="fTitle"/></div>
+    <div class="fg"><label>المحتوى</label><textarea id="fContent"></textarea></div>
+    <div class="fg">
+      <label>رفع ملف (Excel/CSV/PDF/صورة) — يُحوَّل تلقائياً لنص</label>
+      <input type="file" id="fFile" accept=".csv,.xlsx,.xls,.pdf,.png,.jpg,.jpeg,.txt" style="padding:8px"/>
+      <div id="fileStatus" style="font-size:12px;color:#4ade80;margin-top:4px"></div>
+    </div>
+    <div class="fg"><label>المصدر</label><input type="text" id="fSource"/></div>
+    <div class="fg" id="activeGroup" style="display:none"><label>الحالة</label><select id="fActive"><option value="true">نشط</option><option value="false">معطل</option></select></div>
+    <div class="mfoot">
+      <button class="btn btn-primary" id="btnSave">حفظ</button>
+      <button class="btn" id="btnCancel" style="background:rgba(255,255,255,.1)">الغاء</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+var BACKEND='http://localhost:4000';
+var allData=[];
+
+function getToken(){
+  var keys=Object.keys(localStorage);
+  for(var i=0;i<keys.length;i++){
+    var v=localStorage.getItem(keys[i]);
+    if(v&&v.startsWith('eyJ'))return v;
+    try{var p=JSON.parse(v);if(p&&p.access_token&&p.access_token.startsWith('eyJ'))return p.access_token;}catch(e){}
+  }
+  return null;
+}
+
+function apiFetch(url,opts){
+  opts=opts||{};
+  var token=getToken();
+  var headers={'Content-Type':'application/json'};
+  if(token)headers['Authorization']='Bearer '+token;
+  opts.headers=headers;
+  return fetch(BACKEND+url,opts);
+}
+
+function loadData(){
+  apiFetch('/api/admin/knowledge').then(function(res){
+    if(res.status===401){document.getElementById('tableBody').innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:#f87171">غير مصرح - سجل دخولك اولا</td></tr>';return;}
+    return res.json();
+  }).then(function(data){
+    if(!data)return;
+    allData=data;
+    updateStats();
+    renderTable();
+  }).catch(function(e){showToast('خطأ في الاتصال');});
+}
+
+function updateStats(){
+  document.getElementById('totalCount').textContent=allData.length;
+  document.getElementById('activeCount').textContent=allData.filter(function(r){return r.is_active;}).length;
+  document.getElementById('catCount').textContent=[...new Set(allData.map(function(r){return r.category;}))].length;
+  document.getElementById('highPriority').textContent=allData.filter(function(r){return r.priority>=8;}).length;
+}
+
+function renderTable(){
+  var cat=document.getElementById('filterCat').value;
+  var active=document.getElementById('filterActive').value;
+  var search=document.getElementById('searchInput').value.toLowerCase();
+  var data=allData.filter(function(r){
+    if(cat&&r.category!==cat)return false;
+    if(active==='true'&&!r.is_active)return false;
+    if(active==='false'&&r.is_active)return false;
+    if(search&&r.title.toLowerCase().indexOf(search)<0)return false;
+    return true;
+  });
+  var rows=data.map(function(r){
+    var catClass='b'+r.category.charAt(0);
+    var priClass=r.priority>=8?'ph':'';
+    var activeClass=r.is_active?'ay':'an';
+    var activeText=r.is_active?'نشط':'معطل';
+    var toggleText=r.is_active?'تعطيل':'تفعيل';
+    return '<tr><td><span class="badge '+catClass+'">'+r.category+'</span></td>'+
+      '<td style="max-width:200px;font-weight:600">'+r.title+'</td>'+
+      '<td><div class="cprev">'+r.content+'</div></td>'+
+      '<td style="color:#fbbf24">'+(r.hs_code||'-')+'</td>'+
+      '<td>'+(r.market||'-')+'</td>'+
+      '<td class="'+priClass+'">'+r.priority+'/10</td>'+
+      '<td class="'+activeClass+'">'+activeText+'</td>'+
+      '<td style="font-size:11px;color:#6b7280">'+(r.source||'-')+'</td>'+
+      '<td>'+
+        '<button class="btn btn-success btn-sm" onclick="openEdit(\'' + r.id + '\')">تعديل</button> '+
+        '<button class="btn btn-danger btn-sm" onclick="toggleActive(\'' + r.id + '\',' + (!r.is_active) + ')">'+toggleText+'</button>'+
+      '</td></tr>';
+  });
+  document.getElementById('tableBody').innerHTML=rows.join('');
+}
+
+function openAdd(){
+  document.getElementById('modalTitle').textContent='اضافة سجل جديد';
+  document.getElementById('editId').value='';
+  document.getElementById('fCategory').value='pricing';
+  document.getElementById('fPriority').value='5';
+  document.getElementById('fHsCode').value='';
+  document.getElementById('fMarket').value='';
+  document.getElementById('fTitle').value='';
+  document.getElementById('fContent').value='';
+  document.getElementById('fSource').value='';
+  document.getElementById('activeGroup').style.display='none';
+  document.getElementById('modal').classList.add('open');
+}
+
+function openEdit(id){
+  var r=allData.find(function(x){return x.id===id;});
+  if(!r)return;
+  document.getElementById('modalTitle').textContent='تعديل سجل';
+  document.getElementById('editId').value=r.id;
+  document.getElementById('fCategory').value=r.category;
+  document.getElementById('fPriority').value=r.priority;
+  document.getElementById('fHsCode').value=r.hs_code||'';
+  document.getElementById('fMarket').value=r.market||'';
+  document.getElementById('fTitle').value=r.title;
+  document.getElementById('fContent').value=r.content;
+  document.getElementById('fSource').value=r.source||'';
+  document.getElementById('fActive').value=String(r.is_active);
+  document.getElementById('activeGroup').style.display='block';
+  document.getElementById('modal').classList.add('open');
+}
+
+function saveRecord(){
+  var id=document.getElementById('editId').value;
+  var body={
+    category:document.getElementById('fCategory').value,
+    priority:document.getElementById('fPriority').value,
+    hs_code:document.getElementById('fHsCode').value||null,
+    market:document.getElementById('fMarket').value||null,
+    title:document.getElementById('fTitle').value,
+    content:document.getElementById('fContent').value,
+    source:document.getElementById('fSource').value||null,
+    is_active:document.getElementById('fActive').value==='true'
+  };
+  if(!body.title||!body.content){showToast('العنوان والمحتوى مطلوبان');return;}
+  var url=id?'/api/admin/knowledge/'+id:'/api/admin/knowledge';
+  var method=id?'PUT':'POST';
+  apiFetch(url,{method:method,body:JSON.stringify(body)}).then(function(){
+    document.getElementById('modal').classList.remove('open');
+    showToast(id?'تم التحديث':'تمت الاضافة');
+    loadData();
+  });
+}
+
+function toggleActive(id,newState){
+  var r=allData.find(function(x){return x.id===id;});
+  if(!r)return;
+  var body=Object.assign({},r,{is_active:newState});
+  apiFetch('/api/admin/knowledge/'+id,{method:'PUT',body:JSON.stringify(body)}).then(function(){
+    showToast(newState?'تم التفعيل':'تم التعطيل');
+    loadData();
+  });
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background='#4ade80';
+  t.style.color='#000';
+  t.style.display='block';
+  setTimeout(function(){t.style.display='none';},3000);
+}
+
+document.getElementById('fFile').onchange=function(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var status=document.getElementById('fileStatus');
+  status.textContent='جاري المعالجة...';
+  var reader=new FileReader();
+  
+  if(file.name.endsWith('.csv')||file.name.endsWith('.txt')){
+    reader.onload=function(ev){
+      var text=ev.target.result;
+      var lines=text.split('\n').slice(0,50);
+      document.getElementById('fContent').value=lines.join('\n');
+      status.textContent='تم تحميل '+lines.length+' سطر من '+file.name;
+    };
+    reader.readAsText(file,'UTF-8');
+  } else if(file.name.endsWith('.xlsx')||file.name.endsWith('.xls')){
+    reader.onload=function(ev){
+      try{
+        var data=new Uint8Array(ev.target.result);
+        var wb=XLSX.read(data,{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var csv=XLSX.utils.sheet_to_csv(ws);
+        var lines=csv.split('\n').slice(0,50);
+        document.getElementById('fContent').value=lines.join('\n');
+        status.textContent='تم تحميل Excel: '+wb.SheetNames[0]+' ('+lines.length+' صف)';
+      }catch(err){status.textContent='خطأ في قراءة Excel: '+err.message;}
+    };
+    reader.readAsArrayBuffer(file);
+  } else if(file.type.startsWith('image/')){
+    reader.onload=function(ev){
+      var img=document.createElement('img');
+      img.src=ev.target.result;
+      img.onload=function(){
+        document.getElementById('fContent').value+='\n[صورة مرفقة: '+file.name+' | '+img.width+'x'+img.height+']';
+        status.textContent='تم رفع الصورة: '+file.name;
+      };
+    };
+    reader.readAsDataURL(file);
+  } else if(file.name.endsWith('.pdf')){
+    status.textContent='PDF: '+file.name+' — اضف المحتوى يدوياً في حقل النص';
+    document.getElementById('fContent').value+='\n[ملف PDF: '+file.name+']';
+  } else {
+    reader.onload=function(ev){
+      document.getElementById('fContent').value=ev.target.result.substring(0,2000);
+      status.textContent='تم تحميل: '+file.name;
+    };
+    reader.readAsText(file,'UTF-8');
+  }
+};
+
+document.getElementById('btnAdd').onclick=openAdd;
+document.getElementById('btnRefresh').onclick=loadData;
+document.getElementById('btnSave').onclick=saveRecord;
+document.getElementById('btnCancel').onclick=function(){document.getElementById('modal').classList.remove('open');};
+document.getElementById('filterCat').onchange=renderTable;
+document.getElementById('filterActive').onchange=renderTable;
+document.getElementById('searchInput').oninput=renderTable;
+
+var token=getToken();
+if(token){
+  try{var p=JSON.parse(atob(token.split('.')[1]));document.getElementById('adminEmail').textContent=p.email||'Admin';}catch(e){}
+}
+
+loadData();
+</script>
+</body>
+</html>

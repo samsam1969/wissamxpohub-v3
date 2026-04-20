@@ -1,0 +1,6 @@
+﻿f = open("services/claude_service.py", encoding="utf-8")
+c = f.read()
+f.close()
+print("Size:", len(c))
+print("Multi-call:", "p1_prompt" in c)
+print("MAX_TOKENS:", [x for x in c.split("\n") if "MAX_TOKENS" in x])

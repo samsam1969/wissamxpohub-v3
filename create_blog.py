@@ -1,0 +1,435 @@
+﻿html = """<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"/>
+<title>Blog — WissamXpoHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth_guard.js"></script>
+<style>
+:root{--bg:#060f1e;--bg2:#071326;--line:#1e3a6e;--line2:#2d5aa8;--text:#e8f0ff;--muted:#8fabd4;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--btn:#1d4ed8;--btn2:#1e293b;--radius:18px;--shadow:0 8px 32px rgba(0,0,0,.35);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;font-family:'Cairo',Arial,sans-serif;background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 50%,#08172e 100%);background-attachment:fixed;color:var(--text);overflow-x:hidden;}
+.wrap{max-width:1400px;margin:0 auto;padding:20px;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;background:rgba(12,26,51,.97);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:20px;flex-wrap:wrap;}
+.nav-brand{font-size:18px;font-weight:800;}.nav-brand span{color:#60a5fa;}
+.card{background:linear-gradient(160deg,rgba(12,26,51,.97),rgba(8,20,44,.97));border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:18px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+h2{font-size:22px;font-weight:800;}h3{font-size:15px;color:var(--muted);font-weight:600;}
+label{display:block;margin:10px 0 6px;color:var(--text);font-weight:700;font-size:14px;}
+input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:#fff;padding:12px 16px;font-size:14px;font-family:'Cairo',Arial,sans-serif;outline:none;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--line2);box-shadow:0 0 0 3px rgba(45,90,168,.2);}
+input::placeholder,textarea::placeholder{color:var(--muted);}
+select option{background:#0c1a33;}textarea{min-height:120px;resize:vertical;}
+button{border:none;border-radius:12px;padding:11px 18px;font-size:14px;font-weight:800;font-family:'Cairo',Arial,sans-serif;cursor:pointer;color:#fff;transition:transform .13s,opacity .13s;box-shadow:0 4px 14px rgba(0,0,0,.22);}
+button:hover{transform:translateY(-2px);opacity:.92;}button:active{transform:scale(.97);}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.primary{background:var(--btn);}.secondary{background:var(--btn2);}.danger{background:#991b1b;}.ghost{background:rgba(255,255,255,.06);border:1px solid var(--line);}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:.5px;}
+.badge-news{background:rgba(29,78,216,.2);color:#93c5fd;border:1px solid rgba(29,78,216,.4);}
+.badge-market{background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.4);}
+.badge-opportunity{background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.4);}
+.badge-analysis{background:rgba(139,92,246,.2);color:#c4b5fd;border:1px solid rgba(139,92,246,.4);}
+.badge-rfq{background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.4);}
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;}
+.post-card{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;}
+.post-card:hover{border-color:var(--line2);transform:translateY(-3px);}
+.post-img{width:100%;height:180px;object-fit:cover;display:block;}
+.post-img-placeholder{width:100%;height:180px;background:linear-gradient(135deg,rgba(29,78,216,.15),rgba(16,185,129,.1));display:flex;align-items:center;justify-content:center;font-size:48px;}
+.post-body{padding:16px;}
+.post-title{font-size:16px;font-weight:800;margin:8px 0 6px;line-height:1.5;}
+.post-excerpt{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px;}
+.post-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.post-files{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.file-chip{font-size:11px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--muted);text-decoration:none;}
+.file-chip:hover{border-color:var(--line2);color:var(--text);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:linear-gradient(160deg,#0e1e3a,#0a1628);border:1px solid var(--line2);border-radius:22px;padding:28px;width:100%;max-width:700px;margin:auto;box-shadow:0 24px 64px rgba(0,0,0,.5);}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:16px;}
+.upload-zone{border:2px dashed var(--line);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:border-color .15s;margin-top:6px;}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--line2);background:rgba(45,90,168,.08);}
+.upload-zone input{display:none;}
+.uploaded-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.up-chip{display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:999px;font-size:12px;color:#6ee7b7;}
+.up-chip button{background:none;box-shadow:none;padding:0;font-size:14px;color:#6ee7b7;min-width:auto;transform:none;}
+.loader-wrap{display:none;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);background:rgba(0,0,0,.25);border-radius:12px;margin-bottom:12px;}
+.loader-wrap.show{display:flex;}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.12);border-top-color:#60a5fa;border-radius:50%;animation:spin .9s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .icon{font-size:48px;margin-bottom:14px;}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.filter-btn{padding:7px 14px;font-size:12px;font-weight:700;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted);cursor:pointer;transition:all .15s;box-shadow:none;}
+.filter-btn:hover,.filter-btn.active{background:rgba(29,78,216,.2);border-color:rgba(59,130,246,.5);color:#93c5fd;transform:none;}
+.view-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:1001;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.view-modal.show{display:flex;}
+.view-box{background:linear-gradient(160deg,#0e1e3a,#0a1628);border:1px solid var(--line2);border-radius:22px;padding:28px;width:100%;max-width:800px;margin:auto;}
+a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
+@media(max-width:600px){.posts-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="top-nav">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <button type="button" class="ghost" onclick="goBack()" style="padding:9px 16px;font-size:13px;border-radius:10px;">&#8592; العودة</button>
+    <div class="nav-brand">WissamXpoHub <span>/ Blog</span></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div id="authStatus" style="font-size:13px;color:var(--muted);font-weight:600;"></div>
+    <button type="button" class="primary" id="newPostBtn" onclick="openNewPost()" style="padding:9px 16px;font-size:13px;">+ منشور جديد</button>
+  </div>
+</nav>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <button type="button" class="filter-btn active" onclick="filterPosts('all',this)">الكل</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('news',this)">&#128240; أخبار</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('market',this)">&#128200; بيانات سوق</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('opportunity',this)">&#127775; فرص تصدير</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('rfq',this)">&#128203; طلبات شراء</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('analysis',this)">&#128202; تحليلات</button>
+</div>
+
+<!-- LOADER -->
+<div class="loader-wrap" id="mainLoader">
+  <div class="spinner"></div>
+  <div style="color:var(--muted);font-size:14px;font-weight:700;">جارٍ تحميل المنشورات...</div>
+</div>
+
+<!-- POSTS GRID -->
+<div class="posts-grid" id="postsGrid"></div>
+
+<!-- EMPTY STATE -->
+<div class="empty-state" id="emptyState" style="display:none;">
+  <div class="icon">&#128240;</div>
+  <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">لا توجد منشورات بعد</div>
+  <div style="font-size:14px;">اضغط "+ منشور جديد" لإضافة أول منشور</div>
+</div>
+
+</div>
+
+<!-- NEW/EDIT POST MODAL -->
+<div class="modal-overlay" id="postModal">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="modal-title" id="modalTitle">منشور جديد</div>
+      <button type="button" class="ghost" onclick="closePostModal()" style="padding:6px 12px;font-size:13px;">&#10005;</button>
+    </div>
+
+    <div class="loader-wrap" id="saveLoader">
+      <div class="spinner"></div>
+      <div style="color:var(--muted);font-size:13px;font-weight:700;">جارٍ الحفظ...</div>
+    </div>
+
+    <input type="hidden" id="editPostId"/>
+
+    <label for="postTitle">العنوان *</label>
+    <input id="postTitle" placeholder="عنوان المنشور..."/>
+
+    <label for="postCategory">التصنيف</label>
+    <select id="postCategory">
+      <option value="news">&#128240; أخبار</option>
+      <option value="market">&#128200; بيانات سوق</option>
+      <option value="opportunity">&#127775; فرصة تصدير</option>
+      <option value="rfq">&#128203; طلب شراء (RFQ)</option>
+      <option value="analysis">&#128202; تحليل</option>
+    </select>
+
+    <label for="postContent">المحتوى</label>
+    <textarea id="postContent" placeholder="اكتب محتوى المنشور..." style="min-height:150px;"></textarea>
+
+    <label for="postTags">الوسوم (مفصولة بفواصل)</label>
+    <input id="postTags" placeholder="مثال: توت، مصر، ألمانيا، تصدير"/>
+
+    <!-- Image Upload -->
+    <label>صورة الغلاف</label>
+    <div class="upload-zone" id="imgZone" onclick="document.getElementById('imgInput').click()" ondragover="dragOver(event,'imgZone')" ondragleave="dragLeave('imgZone')" ondrop="dropFile(event,'img')">
+      <input type="file" id="imgInput" accept="image/*" onchange="handleImageFile(this.files[0])"/>
+      <div id="imgPreview">
+        <div style="font-size:32px;margin-bottom:8px;">&#128247;</div>
+        <div style="font-size:13px;color:var(--muted);">اسحب صورة أو اضغط للاختيار (JPG, PNG, WebP)</div>
+      </div>
+    </div>
+
+    <!-- Files Upload -->
+    <label>ملفات مرفقة</label>
+    <div class="upload-zone" id="fileZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event,'fileZone')" ondragleave="dragLeave('fileZone')" ondrop="dropFile(event,'file')">
+      <input type="file" id="fileInput" multiple accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.pptx,.txt" onchange="handleFiles(this.files)"/>
+      <div style="font-size:28px;margin-bottom:6px;">&#128196;</div>
+      <div style="font-size:13px;color:var(--muted);">PDF, Excel, Word, CSV, PowerPoint</div>
+    </div>
+    <div class="uploaded-files" id="uploadedFiles"></div>
+
+    <div id="formError" style="margin-top:10px;font-size:13px;color:var(--bad);font-weight:700;min-height:18px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button type="button" class="primary" id="saveBtn" onclick="savePost()" style="flex:1;">حفظ المنشور</button>
+      <button type="button" class="ghost" onclick="closePostModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW POST MODAL -->
+<div class="view-modal" id="viewModal">
+  <div class="view-box">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+      <div>
+        <div id="viewBadge"></div>
+        <div id="viewTitle" style="font-size:22px;font-weight:800;margin-top:8px;line-height:1.4;"></div>
+        <div id="viewMeta" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button type="button" class="secondary" id="editBtn" onclick="editPost()" style="padding:7px 14px;font-size:13px;">&#9998; تعديل</button>
+        <button type="button" class="danger" id="deleteBtn" onclick="deletePost()" style="padding:7px 14px;font-size:13px;">&#128465; حذف</button>
+        <button type="button" class="ghost" onclick="closeViewModal()" style="padding:7px 14px;font-size:13px;">&#10005;</button>
+      </div>
+    </div>
+    <div id="viewImg" style="margin-bottom:16px;"></div>
+    <div id="viewContent" style="font-size:15px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
+    <div id="viewTags" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+    <div id="viewFiles" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL="https://hfvhivxpaqnqaooyqmaw.supabase.co";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmdmhpdnhwYXFucWFvb3lxbWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NDg1OTMsImV4cCI6MjA4ODAyNDU5M30.HaTO3Ngeq6oaw9eLddgJpxg-_6fwD6G9aj8EJZSRUcY";
+const BUCKET="blog-media";
+const qs=id=>document.getElementById(id);
+let sb=null, allPosts=[], currentPost=null, pendingFiles=[], pendingImage=null, currentFilter="all";
+
+function initSB(){if(!sb)sb=window.supabase.createClient(SB_URL,SB_KEY);return sb;}
+
+async function getToken(){try{const{data}=await sb.auth.getSession();if(data?.session?.access_token){localStorage.setItem("wx_access_token",data.session.access_token);return data.session.access_token;}}catch(_){}return localStorage.getItem("wx_access_token")||"";}
+
+/* ── CATEGORIES ── */
+const CATS={
+  news:{label:"أخبار",icon:"📰",cls:"badge-news"},
+  market:{label:"بيانات سوق",icon:"📈",cls:"badge-market"},
+  opportunity:{label:"فرصة تصدير",icon:"🌟",cls:"badge-opportunity"},
+  rfq:{label:"طلب شراء",icon:"📋",cls:"badge-rfq"},
+  analysis:{label:"تحليل",icon:"📊",cls:"badge-analysis"}
+};
+function catBadge(cat){const c=CATS[cat]||CATS.news;return `<span class="badge ${c.cls}">${c.icon} ${c.label}</span>`;}
+
+/* ── LOAD POSTS ── */
+async function loadPosts(){
+  qs("mainLoader").classList.add("show");
+  initSB();
+  try{
+    const{data,error}=await sb.from("blog_posts").select("*").order("created_at",{ascending:false});
+    if(error)throw error;
+    allPosts=data||[];
+    renderPosts(allPosts);
+  }catch(e){console.error(e);}
+  finally{qs("mainLoader").classList.remove("show");}
+}
+
+function renderPosts(posts){
+  const filtered=currentFilter==="all"?posts:posts.filter(p=>p.category===currentFilter);
+  const grid=qs("postsGrid");
+  const empty=qs("emptyState");
+  if(!filtered.length){grid.innerHTML="";empty.style.display="block";return;}
+  empty.style.display="none";
+  grid.innerHTML=filtered.map(p=>{
+    const img=p.image_url?`<img class="post-img" src="${p.image_url}" alt="" loading="lazy"/>`:`<div class="post-img-placeholder">${CATS[p.category]?.icon||"📰"}</div>`;
+    const excerpt=(p.content||"").substring(0,120)+(p.content?.length>120?"...":"");
+    const tags=(p.tags||[]).map(t=>`<span style="font-size:11px;padding:2px 8px;background:rgba(255,255,255,.06);border-radius:999px;color:var(--muted);">#${t}</span>`).join(" ");
+    const date=new Date(p.created_at).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});
+    const files=p.file_url?`<div class="post-files"><a href="${p.file_url}" target="_blank" class="file-chip">📎 ${p.file_name||"ملف"}</a></div>`:"";
+    return`<div class="post-card" onclick="viewPost('${p.id}')">
+      ${img}
+      <div class="post-body">
+        ${catBadge(p.category)}
+        <div class="post-title">${p.title}</div>
+        <div class="post-excerpt">${excerpt}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">${tags}</div>
+        <div class="post-meta"><span>&#128197; ${date}</span><span>&#9993;&#65039; ${p.author_email||""}</span></div>
+        ${files}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function filterPosts(cat,btn){
+  currentFilter=cat;
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderPosts(allPosts);
+}
+
+/* ── VIEW POST ── */
+function viewPost(id){
+  currentPost=allPosts.find(p=>p.id===id);
+  if(!currentPost)return;
+  qs("viewBadge").innerHTML=catBadge(currentPost.category);
+  qs("viewTitle").textContent=currentPost.title;
+  const date=new Date(currentPost.created_at).toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"});
+  qs("viewMeta").textContent=`${date}  •  ${currentPost.author_email||""}`;
+  qs("viewImg").innerHTML=currentPost.image_url?`<img src="${currentPost.image_url}" style="width:100%;border-radius:12px;max-height:320px;object-fit:cover;" alt=""/>` :"";
+  qs("viewContent").textContent=currentPost.content||"";
+  qs("viewTags").innerHTML=(currentPost.tags||[]).map(t=>`<span style="font-size:12px;padding:3px 10px;background:rgba(255,255,255,.07);border-radius:999px;color:var(--muted);">#${t}</span>`).join("");
+  qs("viewFiles").innerHTML=currentPost.file_url?`<a href="${currentPost.file_url}" target="_blank" class="file-chip" style="font-size:13px;">📎 ${currentPost.file_name||"تنزيل الملف"}</a>`:"";
+  qs("viewModal").classList.add("show");
+}
+function closeViewModal(){qs("viewModal").classList.remove("show");currentPost=null;}
+
+/* ── NEW / EDIT ── */
+function openNewPost(){
+  qs("editPostId").value="";
+  qs("modalTitle").textContent="منشور جديد";
+  qs("postTitle").value="";qs("postCategory").value="news";qs("postContent").value="";qs("postTags").value="";
+  qs("imgPreview").innerHTML='<div style="font-size:32px;margin-bottom:8px;">📷</div><div style="font-size:13px;color:var(--muted);">اسحب صورة أو اضغط للاختيار</div>';
+  qs("uploadedFiles").innerHTML="";qs("formError").textContent="";
+  pendingFiles=[];pendingImage=null;
+  qs("postModal").classList.add("show");
+}
+
+function editPost(){
+  closeViewModal();
+  const p=currentPost;if(!p)return;
+  qs("editPostId").value=p.id;
+  qs("modalTitle").textContent="تعديل المنشور";
+  qs("postTitle").value=p.title||"";
+  qs("postCategory").value=p.category||"news";
+  qs("postContent").value=p.content||"";
+  qs("postTags").value=(p.tags||[]).join("، ");
+  qs("imgPreview").innerHTML=p.image_url?`<img src="${p.image_url}" style="max-height:120px;border-radius:8px;" alt=""/>`:'<div style="font-size:32px;">📷</div>';
+  qs("uploadedFiles").innerHTML=p.file_name?`<div class="up-chip">📎 ${p.file_name}</div>`:"";
+  qs("formError").textContent="";
+  pendingFiles=[];pendingImage=null;
+  qs("postModal").classList.add("show");
+}
+
+function closePostModal(){qs("postModal").classList.remove("show");pendingFiles=[];pendingImage=null;}
+
+/* ── FILE HANDLING ── */
+function handleImageFile(file){
+  if(!file)return;
+  pendingImage=file;
+  const reader=new FileReader();
+  reader.onload=e=>qs("imgPreview").innerHTML=`<img src="${e.target.result}" style="max-height:120px;border-radius:8px;" alt=""/><div style="font-size:12px;color:var(--muted);margin-top:6px;">${file.name}</div>`;
+  reader.readAsDataURL(file);
+}
+
+function handleFiles(files){
+  for(const f of files){
+    if(!pendingFiles.find(x=>x.name===f.name))pendingFiles.push(f);
+  }
+  renderPendingFiles();
+}
+
+function renderPendingFiles(){
+  qs("uploadedFiles").innerHTML=pendingFiles.map((f,i)=>`<div class="up-chip">📎 ${f.name}<button type="button" onclick="removeFile(${i})">✕</button></div>`).join("");
+}
+
+function removeFile(i){pendingFiles.splice(i,1);renderPendingFiles();}
+
+function dragOver(e,id){e.preventDefault();qs(id).classList.add("dragover");}
+function dragLeave(id){qs(id).classList.remove("dragover");}
+function dropFile(e,type){
+  e.preventDefault();
+  const files=e.dataTransfer.files;
+  if(type==="img"&&files[0])handleImageFile(files[0]);
+  else handleFiles(files);
+  qs(type==="img"?"imgZone":"fileZone").classList.remove("dragover");
+}
+
+/* ── UPLOAD TO SUPABASE ── */
+async function uploadFile(file,folder){
+  const ext=file.name.split(".").pop();
+  const path=`${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const{data,error}=await sb.storage.from(BUCKET).upload(path,file,{cacheControl:"3600",upsert:false});
+  if(error)throw error;
+  const{data:{publicUrl}}=sb.storage.from(BUCKET).getPublicUrl(path);
+  return{url:publicUrl,name:file.name};
+}
+
+/* ── SAVE POST ── */
+async function savePost(){
+  qs("formError").textContent="";
+  const title=qs("postTitle").value.trim();
+  if(!title){qs("formError").textContent="العنوان مطلوب";return;}
+
+  const token=await getToken();
+  if(!token){qs("formError").textContent="سجّل الدخول أولاً";return;}
+
+  qs("saveLoader").classList.add("show");
+  qs("saveBtn").disabled=true;
+
+  try{
+    let image_url=null,file_url=null,file_name=null;
+
+    if(pendingImage){const r=await uploadFile(pendingImage,"images");image_url=r.url;}
+    if(pendingFiles.length){const r=await uploadFile(pendingFiles[0],"files");file_url=r.url;file_name=r.name;}
+
+    const tags=qs("postTags").value.split(/[,،]/).map(t=>t.trim()).filter(Boolean);
+    const email=localStorage.getItem("wx_user_email")||"";
+    const editId=qs("editPostId").value;
+
+    const payload={title,category:qs("postCategory").value,content:qs("postContent").value.trim(),tags,author_email:email,updated_at:new Date().toISOString()};
+    if(image_url)payload.image_url=image_url;
+    if(file_url){payload.file_url=file_url;payload.file_name=file_name;}
+
+    let error;
+    if(editId){
+      ({error}=await sb.from("blog_posts").update(payload).eq("id",editId));
+    }else{
+      ({error}=await sb.from("blog_posts").insert([payload]));
+    }
+    if(error)throw error;
+
+    closePostModal();
+    await loadPosts();
+  }catch(e){
+    qs("formError").textContent="خطأ: "+e.message;
+  }finally{
+    qs("saveLoader").classList.remove("show");
+    qs("saveBtn").disabled=false;
+  }
+}
+
+/* ── DELETE ── */
+async function deletePost(){
+  if(!currentPost)return;
+  if(!confirm("هل أنت متأكد من حذف هذا المنشور؟"))return;
+  const{error}=await sb.from("blog_posts").delete().eq("id",currentPost.id);
+  if(error){alert("خطأ في الحذف: "+error.message);return;}
+  closeViewModal();
+  await loadPosts();
+}
+
+function goBack(){if(document.referrer)history.back();else window.location.href="WissamXpoHub_V3_Frontend_FIXED.html";}
+
+async function checkAuth(){
+  let t=0;while(typeof window.supabase==="undefined"&&t++<30)await new Promise(r=>setTimeout(r,100));
+  initSB();
+  try{
+    const{data}=await sb.auth.getSession();
+    if(data?.session?.access_token){
+      localStorage.setItem("wx_access_token",data.session.access_token);
+      qs("authStatus").innerHTML='<span style="color:var(--ok)">&#10003; '+data.session.user?.email+'</span>';
+    }else if(localStorage.getItem("wx_user_email")){
+      qs("authStatus").innerHTML='<span style="color:var(--warn)">'+localStorage.getItem("wx_user_email")+'</span>';
+    }
+  }catch(_){}
+}
+
+async function init(){
+  let t=0;while(typeof window.supabase==="undefined"&&t++<30)await new Promise(r=>setTimeout(r,100));
+  initSB();
+  await checkAuth();
+  await loadPosts();
+}
+init();
+</script>
+</body>
+</html>"""
+
+with open("Blog.html","w",encoding="utf-8") as f:
+    f.write(html)
+print("Done - size:", len(html))

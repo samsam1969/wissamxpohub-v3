@@ -1,0 +1,5 @@
+﻿f = open("PotentialBuyers.html", encoding="utf-8")
+html = f.read()
+f.close()
+idx = html.find("searchMode")
+print(repr(html[idx-20:idx+200]))

@@ -1,0 +1,2323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <title>WissamXpoHub V3 — EU Export Intelligence</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --bg:    #060f1e;
+      --bg2:   #071326;
+      --bg3:   #08172e;
+      --card:  #0c1a33;
+      --card2: #0f2040;
+      --line:  #1e3a6e;
+      --line2: #2d5aa8;
+      --text:  #e8f0ff;
+      --muted: #8fabd4;
+      --ok:    #4ade80;
+      --bad:   #f87171;
+      --warn:  #fbbf24;
+      --btn:   #1d4ed8;
+      --btn2:  #1e293b;
+      --btn3:  #15803d;
+      --btn4:  #d97706;
+      --shadow: 0 8px 32px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Cairo', Arial, sans-serif;
+      background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 50%, var(--bg3) 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── LAYOUT ── */
+    .wrap         { max-width: 1500px; margin: 0 auto; padding: 20px; }
+    .hero         { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; margin-bottom: 18px; align-items: stretch; }
+    .grid         { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .stats        { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin: 18px 0; }
+    .two          { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; align-items: start; }
+    .dashboard-stack { display: grid; gap: 18px; margin-top: 18px; }
+
+    /* ── CARD ── */
+    .card {
+      background: linear-gradient(160deg, rgba(12,26,51,.97), rgba(8,20,44,.97));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    h2 { font-size: 22px; font-weight: 800; }
+    h3 { font-size: 15px; color: var(--muted); font-weight: 600; }
+
+    /* ── HERO TITLE ── */
+    .title { font-size: 42px; font-weight: 800; text-align: center; margin-top: 6px; letter-spacing: .5px; }
+    .sub   { text-align: center; color: var(--muted); font-size: 20px; margin-top: 4px; }
+
+    .badge-row   { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 8px; }
+    .badge       { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; }
+    .badge.live  { border-color: var(--ok); color: var(--ok); }
+
+    /* ── USER STATUS BAR ── */
+    .user-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    .user-dot  { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .user-dot.ok  { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+    .user-dot.bad { background: var(--bad); }
+
+    /* ── MINI CARDS ── */
+    .mini {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .mini b { display: block; font-size: 14px; color: var(--warn); margin-bottom: 4px; font-weight: 700; }
+
+    /* ── INPUTS ── */
+    label { display: block; margin: 12px 0 7px; color: var(--text); font-weight: 700; font-size: 15px; }
+
+    input, select, textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.3);
+      color: #fff;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: 'Cairo', Arial, sans-serif;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--line2);
+      box-shadow: 0 0 0 3px rgba(45,90,168,.25);
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    textarea { min-height: 110px; resize: vertical; }
+
+    select option { background: #0c1a33; }
+
+    /* ── BUTTONS ── */
+    .btns        { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .action-btns { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; margin-top: 16px; }
+    .hero-auth-btns { justify-content: center; margin-top: 16px; }
+    .hero-auth-btns button { min-width: 140px; }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      font-family: 'Cairo', Arial, sans-serif;
+      cursor: pointer;
+      color: #fff;
+      transition: transform .13s, filter .13s, opacity .13s, box-shadow .13s;
+      box-shadow: 0 6px 16px rgba(0,0,0,.22);
+    }
+
+    button:hover   { transform: translateY(-2px); filter: brightness(1.1); }
+    button:active  { transform: scale(.97); filter: brightness(.9); }
+    button:disabled { opacity: .55; cursor: not-allowed; transform: none; filter: none; box-shadow: none; }
+
+    .primary   { background: var(--btn); }
+    .secondary { background: var(--btn2); }
+    .success   { background: var(--btn3); }
+    .warn      { background: var(--btn4); color: #111; }
+    .ghost     { background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+    .danger    { background: #991b1b; }
+
+    /* ── STATUS BOX ── */
+    .status-box {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px dashed var(--line);
+      font-size: 14px;
+      background: rgba(0,0,0,.25);
+      line-height: 1.6;
+    }
+    .status-ok  { color: var(--ok);  font-weight: 700; }
+    .status-bad { color: var(--bad); font-weight: 700; }
+    .status-warn { color: var(--warn); font-weight: 700; }
+
+    /* ── MISC ── */
+    .hint         { color: var(--muted); margin-top: 10px; font-size: 14px; line-height: 1.8; }
+    .product-box  { margin-top: 10px; color: var(--warn); font-size: 20px; font-weight: 800; }
+
+    /* ── STATS ── */
+    .stat { background: rgba(0,0,0,.3); border: 1px solid var(--line); border-radius: 16px; padding: 14px; text-align: center; min-height: 96px; }
+    .stat .k { color: var(--muted); font-size: 11px; margin-bottom: 8px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .stat .v { font-size: 18px; font-weight: 800; word-break: break-word; }
+
+    /* ── LIST ROWS ── */
+    .list-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0,0,0,.2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 13px 16px;
+      margin-bottom: 8px;
+      font-size: 15px;
+      min-height: 60px;
+    }
+    .list-row span { color: var(--text); font-weight: 600; }
+
+    /* ── OUTPUT BOXES ── */
+    .boxout {
+      min-height: 260px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+
+      line-height: 1.85;
+      font-size: 15px;
+      overflow: auto;
+      font-family: 'Cairo', Arial, sans-serif;
+    }
+
+    .footer-note { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.8; }
+
+    /* ── SOURCE REFERENCE SYSTEM ── */
+    .src-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+    .src-card {
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      transition: border-color .15s;
+    }
+    .src-card:hover { border-color: var(--line2); }
+    .src-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+    .src-badge {
+      font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+      letter-spacing: .5px; flex-shrink: 0;
+    }
+    .src-badge.eu  { background: rgba(29,78,216,.3); color: #93c5fd; border: 1px solid #1d4ed8; }
+    .src-badge.eg  { background: rgba(220,38,38,.2); color: #fca5a5; border: 1px solid #dc2626; }
+    .src-badge.cbi { background: rgba(5,150,105,.2); color: #6ee7b7; border: 1px solid #059669; }
+    .src-badge.b2b { background: rgba(139,92,246,.2); color: #c4b5fd; border: 1px solid #8b5cf6; }
+    .src-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; }
+    .src-meta { display: flex; gap: 12px; font-size: 11px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+    .src-link { font-size: 12px; font-weight: 700; color: #7eb3ff; }
+
+    /* Citation panel */
+    .cite-card {
+      background: rgba(0,0,0,.2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .cite-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .cite-year { font-size: 11px; color: var(--warn); font-weight: 700; }
+    .cite-desc { font-size: 12px; color: var(--muted); margin: 4px 0; line-height: 1.6; }
+
+    @media (max-width: 1100px) { .src-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px)  { .src-grid { grid-template-columns: 1fr; } }
+
+    /* ── MARKDOWN STYLES ── */
+    .boxout h1,.boxout h2,.boxout h3 { color: #60a5fa; font-weight: 800; margin: 16px 0 8px; }
+    .boxout h1 { font-size: 20px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    .boxout h2 { font-size: 17px; }
+    .boxout h3 { font-size: 15px; color: var(--warn); }
+    .boxout p  { margin: 8px 0; line-height: 1.9; }
+    .boxout ul,.boxout ol { padding-right: 20px; margin: 8px 0; }
+    .boxout li { margin: 5px 0; line-height: 1.8; }
+    .boxout strong { color: #fff; font-weight: 800; }
+    .boxout em { color: var(--muted); }
+    .boxout code { background: rgba(255,255,255,.08); padding: 2px 7px; border-radius: 6px; font-size: 13px; }
+    .boxout table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+    .boxout th { background: rgba(29,78,216,.3); color: #93c5fd; padding: 10px 12px; text-align: right; font-weight: 700; border: 1px solid var(--line); }
+    .boxout td { padding: 9px 12px; border: 1px solid var(--line); color: var(--text); }
+    .boxout tr:nth-child(even) td { background: rgba(255,255,255,.03); }
+    .boxout hr { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+
+    /* ── CHART CONTAINER ── */
+    .chart-wrap { background: rgba(0,0,0,.3); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-top: 14px; }
+
+    /* ── BUYER TABS ── */
+    .tab-btn {
+      padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      background: transparent; border: 1px solid var(--line); color: var(--muted);
+      cursor: pointer; transition: all .15s;
+    }
+    .tab-btn:hover  { border-color: var(--line2); color: var(--text); }
+    .tab-btn.active { background: rgba(59,130,246,.18); border-color: #3b82f6; color: #93c5fd; }
+
+    /* Buyer table action button */
+    .buyer-action {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+      background: rgba(16,185,129,.15); color: #6ee7b7;
+      border: 1px solid rgba(16,185,129,.3); cursor: pointer; white-space: nowrap;
+    }
+    .buyer-action:hover { background: rgba(16,185,129,.28); }
+    .website-link { color: #7eb3ff; font-size: 12px; font-weight: 700; }
+
+    /* ── AUTOCOMPLETE ── */
+    #acDropdown .ac-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      transition: background .12s;
+    }
+    #acDropdown .ac-item:last-child { border-bottom: none; }
+    #acDropdown .ac-item:hover, #acDropdown .ac-item.active { background: rgba(59,130,246,.15); }
+    #acDropdown .ac-item-name { font-size: 14px; font-weight: 700; }
+    #acDropdown .ac-item-meta { font-size: 11px; color: #8fabd4; margin-top: 2px; }
+    #acDropdown .ac-item-hs   { font-size: 11px; color: #fbbf24; font-weight: 700; }
+    #acDropdown .ac-empty     { padding: 12px 14px; color: #8fabd4; font-size: 13px; }
+
+    /* ── SCANNER LAUNCH BUTTON ── */
+    .scanner-launch-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 800;
+      background: linear-gradient(135deg, rgba(16,185,129,.18), rgba(59,130,246,.12));
+      border: 1px solid rgba(16,185,129,.4); color: #6ee7b7;
+      text-decoration: none; white-space: nowrap; transition: all .18s;
+      position: relative; overflow: hidden; cursor: pointer;
+    }
+    .scanner-launch-btn:hover {
+      background: linear-gradient(135deg, rgba(16,185,129,.32), rgba(59,130,246,.22));
+      border-color: rgba(16,185,129,.7); transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(16,185,129,.2);
+    }
+
+    /* ── OPPORTUNITY SCANNER ── */
+    .scanner-form { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; }
+    .opp-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:14px; }
+    .opp-table th { background:rgba(0,0,0,.35); color:var(--muted); font-size:11px; letter-spacing:.8px; text-transform:uppercase; padding:10px 12px; text-align:left; border-bottom:1px solid var(--line); }
+    .opp-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:middle; }
+    .opp-table tr:hover td { background:rgba(255,255,255,.03); }
+    .score-bar { height:8px; border-radius:999px; background:rgba(255,255,255,.08); position:relative; width:100px; display:inline-block; }
+    .score-fill { height:100%; border-radius:999px; position:absolute; top:0; left:0; }
+    .score-val { font-size:12px; font-weight:800; margin-left:6px; }
+    .rank-badge { width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; background:rgba(59,130,246,.2); color:#93c5fd; border:1px solid rgba(59,130,246,.4); }
+    .rank-badge.gold { background:rgba(245,158,11,.2); color:#fbbf24; border-color:rgba(245,158,11,.4); }
+    .rank-badge.silver { background:rgba(156,163,175,.2); color:#d1d5db; border-color:rgba(156,163,175,.4); }
+    .rank-badge.bronze { background:rgba(180,83,9,.2); color:#fdba74; border-color:rgba(180,83,9,.4); }
+    .comp-pill { font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; }
+    .comp-low  { background:rgba(16,185,129,.15); color:#6ee7b7; border:1px solid rgba(16,185,129,.3); }
+    .comp-med  { background:rgba(245,158,11,.15); color:#fcd34d; border:1px solid rgba(245,158,11,.3); }
+    .comp-high { background:rgba(239,68,68,.15);  color:#fca5a5; border:1px solid rgba(239,68,68,.3); }
+    #scannerMap { height:300px; border-radius:12px; margin-top:14px; z-index:0; }
+    .scanner-charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    .src-tag { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(99,102,241,.15); color:#a5b4fc; border:1px solid rgba(99,102,241,.3); margin:2px; }
+    @media(max-width:800px){ .scanner-form{grid-template-columns:1fr;} .scanner-charts{grid-template-columns:1fr;} .opp-table{font-size:12px;} }
+
+    /* ── ANALYTICS DASHBOARD ── */
+    .chart-card {
+      background: rgba(0,0,0,.3);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .chart-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .kpi-card {
+      background: rgba(0,0,0,.35);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .kpi-card .kpi-val { font-size: 22px; font-weight: 800; margin: 4px 0; }
+    .kpi-card .kpi-lbl { font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .kpi-card .kpi-chg { font-size: 12px; margin-top: 4px; font-weight: 700; }
+    .kpi-up   { color: var(--ok); }
+    .kpi-down { color: var(--bad); }
+
+    @media (max-width: 900px) {
+      #analyticsDashboard > div:last-child { grid-template-columns: 1fr !important; }
+      #kpiCards { grid-template-columns: repeat(2,1fr) !important; }
+    }
+    .chart-title { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 12px; text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── RESEARCH GRID ── */
+    .research-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; }
+
+    .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .checks label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0;
+      padding: 10px 13px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .checks label:hover { border-color: var(--line2); }
+    .checks input[type="checkbox"] { width: auto; margin: 0; transform: scale(1.1); accent-color: #3b82f6; }
+
+    /* ── SOURCE BOXES ── */
+    .sources-box {
+      min-height: 160px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .source-links { display: grid; gap: 8px; margin-top: 12px; }
+    .source-link-item {
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .source-link-item a { display: inline-block; margin-top: 4px; word-break: break-all; }
+
+    /* ── TOOLBAR ── */
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .toolbar button { padding: 9px 14px; font-size: 13px; border-radius: 11px; }
+
+    /* ── LOADER ── */
+    .loader-wrap {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      border-radius: 14px;
+    }
+    .loader-wrap.show { display: flex; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,.12);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+      flex: 0 0 auto;
+    }
+    .loader-text { color: var(--muted); font-size: 14px; font-weight: 700; }
+
+    /* ── KPI STRIP ── */
+    .kpi-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 14px; }
+    .kpi-mini { background: rgba(0,0,0,.3); border: 1px solid var(--line); border-radius: 12px; padding: 11px; }
+    .kpi-mini .label { color: var(--muted); font-size: 11px; margin-bottom: 5px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+    .kpi-mini .value { font-size: 14px; font-weight: 800; }
+
+    /* ── LINKS ── */
+    a { color: #7eb3ff; text-decoration: none; font-weight: 700; }
+    a:hover { text-decoration: underline; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-box {
+      background: linear-gradient(160deg, #0e1e3a, #0a1628);
+      border: 1px solid var(--line2);
+      border-radius: 22px;
+      padding: 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+      animation: slideUp .25s ease;
+    }
+
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .modal-sub   { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    .modal-error { color: var(--bad); font-size: 14px; margin-top: 12px; min-height: 20px; font-weight: 600; }
+
+    /* ── SECTION DIVIDER ── */
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 20px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn .3s ease; }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .btns, .toolbar, .loader-wrap, .hero-auth-btns, .status-box, .hint,
+      .modal-overlay, .user-bar { display: none !important; }
+      .card, .boxout { background: #fff !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+      a { color: #000 !important; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1200px) { .stats { grid-template-columns: repeat(3,1fr); } }
+
+    @media (max-width: 1100px) {
+      .grid, .hero, .two, .stats, .research-grid, .checks, .kpi-strip { grid-template-columns: 1fr; }
+      .title { font-size: 32px; }
+      .sub   { font-size: 18px; }
+      .action-btns { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .wrap { padding: 12px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════
+       LOGIN MODAL
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="loginModal" onclick="handleModalBackdrop(event)">
+    <div class="modal-box" id="loginBox">
+      <div class="modal-title">تسجيل الدخول</div>
+      <div class="modal-sub">ادخل بياناتك للوصول إلى المنصة</div>
+
+      <label for="loginEmail">البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+
+      <label for="loginPassword">كلمة المرور</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') submitLogin()" />
+
+      <div class="btns" style="margin-top: 20px;">
+        <button class="primary" id="submitLoginBtn" onclick="submitLogin()" style="flex:1;">دخول</button>
+        <button class="ghost" onclick="closeLoginModal()">إلغاء</button>
+      </div>
+
+      <div class="modal-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════ -->
+  <div class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+
+      <!-- Left panel -->
+      <div class="card">
+        <div class="card-header">
+          <h2>🧭 دليل الاستخدام</h2>
+          <h3>كيف تستخدم منصة WissamXpoHub خطوة بخطوة</h3>
+        </div>
+
+        <!-- نبذة عن المنصة -->
+        <div class="mini" style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:10px;">
+          <b style="color:#93c5fd;font-size:13px;">📌 ما هذه المنصة؟</b>
+          <div style="margin-top:6px;font-size:13px;line-height:1.8;color:var(--text);">
+            WissamXpoHub منصة ذكاء تصديري مدعومة بالذكاء الاصطناعي، مصمّمة للمصدّرين المصريين الراغبين في استكشاف الأسواق الأوروبية. تساعدك على تحليل فرص التصدير، فهم الأسواق المستهدفة، والتواصل مع المشترين المحتملين.
+          </div>
+        </div>
+
+        <!-- خطوات الاستخدام -->
+        <div class="mini" style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.18);border-radius:10px;padding:12px 16px;margin-bottom:10px;">
+          <b style="color:#6ee7b7;font-size:13px;">🚀 خطوات الاستخدام بالترتيب</b>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">1</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">سجّل الدخول:</span> <span style="color:var(--muted);font-size:12px;">اضغط على زر Login وأدخل بيانات حسابك في Supabase</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">2</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">احفظ الإعدادات:</span> <span style="color:var(--muted);font-size:12px;">تأكد من إدخال عنوان الباك إند واضغط Save Settings</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">3</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">اختبر الاتصال:</span> <span style="color:var(--muted);font-size:12px;">اضغط Test Backend Health للتحقق من تشغيل الخادم</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">4</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">أدخل المنتج:</span> <span style="color:var(--muted);font-size:12px;">اكتب اسم المنتج أو كود HS في حقل Product Setup</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">5</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">اختر السوق:</span> <span style="color:var(--muted);font-size:12px;">حدد دولة الاتحاد الأوروبي المستهدفة من القائمة</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">6</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">شغّل التحليل:</span> <span style="color:var(--muted);font-size:12px;">اضغط Run Export Intelligence للحصول على تقرير تصديري شامل</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">7</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">راجع النتائج:</span> <span style="color:var(--muted);font-size:12px;">اقرأ التحليل، وشاهد الرسومات البيانية، وراجع المصادر</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="min-width:22px;height:22px;border-radius:50%;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">8</span>
+              <div><span style="font-weight:700;color:var(--text);font-size:12px;">أنشئ رسالة:</span> <span style="color:var(--muted);font-size:12px;">راجع قسم Potential Buyers لعرض قائمة المشترين المحتملين</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- شرح الأدوات -->
+        <div class="mini" style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.18);border-radius:10px;padding:12px 16px;margin-bottom:10px;">
+          <b style="color:#fcd34d;font-size:13px;">🛠️ الأدوات الرئيسية</b>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:12px;"><span style="color:#93c5fd;font-weight:800;">AI Export Advisor</span> <span style="color:var(--muted);">— تحليل شامل للسوق مع توصيات تصديرية مفصّلة، مصادر موثّقة، وقائمة مشترين محتملين</span></div>
+            <div style="font-size:12px;"><span style="color:#6ee7b7;font-weight:800;">Potential Buyers</span> <span style="color:var(--muted);">— قائمة المشترين المحتملين مع بياناتهم وإمكانية التصدير PDF أو CSV</span></div>
+            <div style="font-size:12px;"><span style="color:#fcd34d;font-weight:800;">Export Opportunity Scanner</span> <span style="color:var(--muted);">— اكتشاف أفضل 10 أسواق تصدير عالمية بناءً على بيانات التجارة الدولية ومؤشر الفرصة التصديرية</span></div>
+          </div>
+        </div>
+
+        <!-- ملاحظات مهمة -->
+        <div class="mini" style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;">
+          <b style="color:#fca5a5;font-size:13px;">⚠️ ملاحظات مهمة</b>
+          <div style="margin-top:7px;display:flex;flex-direction:column;gap:5px;">
+            <div style="font-size:12px;color:var(--muted);">• تأكد من صحة اسم المنتج أو كود HS قبل تشغيل التحليل للحصول على نتائج دقيقة</div>
+            <div style="font-size:12px;color:var(--muted);">• النتائج والتوصيات مساعِدة في اتخاذ القرار، وليست بديلاً عن البحث الميداني</div>
+            <div style="font-size:12px;color:var(--muted);">• راجع السوق المستهدف والمنافسين قبل التواصل المباشر مع المشترين</div>
+            <div style="font-size:12px;color:var(--muted);">• تأكد من تشغيل الباك إند قبل استخدام أي أداة تحليل</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="card">
+        <div class="title">WissamXpoHub</div>
+        <div class="sub">EU Export Intelligence</div>
+
+        <div class="badge-row">
+          <div class="badge" id="dashBadge">Dashboard Mode</div>
+          <div class="badge">Supabase Auth</div>
+          <div class="badge">AI + Sources</div>
+        </div>
+
+        <!-- User status bar -->
+        <div class="user-bar" id="userBar">
+          <div class="user-dot" id="userDot"></div>
+          <span id="userEmail" style="font-weight:700;font-size:14px;">غير مسجّل الدخول</span>
+          <span id="userPlan" style="margin-right:auto;font-size:13px;color:var(--muted);"></span>
+          <span id="userRemaining" style="font-size:13px;color:var(--muted);"></span>
+        </div>
+
+        <!-- Supabase status indicator -->
+        <div id="sbStatus" style="font-size:11px; margin-top:6px; color:#8fabd4; text-align:center;"></div>
+
+        <div class="btns hero-auth-btns">
+          <button class="primary" id="loginBtn" onclick="loginUser()">Login</button>
+          <button class="ghost"   id="logoutBtn" onclick="logoutUser()">Logout</button>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <button onclick="window.location.href='PotentialBuyers.html'" style="flex:1;background:#1e40af;border:none;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:800;font-family:'Cairo',Arial,sans-serif;cursor:pointer;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.2);">&#127970; Potential Buyers</button>
+          <button onclick="window.location.href='ExportOpportunityScanner.html?v=v2603161930'" style="flex:1;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.4);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:800;font-family:'Cairo',Arial,sans-serif;cursor:pointer;color:#6ee7b7;box-shadow:0 4px 12px rgba(0,0,0,.2);">&#127757; Export Scanner</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SETUP + CONNECTION -->
+    <section class="grid">
+
+      <!-- Product Setup -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Product Setup</h2>
+          <h3>HS code + target country</h3>
+        </div>
+
+        <label for="hs">HS Code</label>
+        <input id="hs" placeholder="مثال: 081110" value="081110" oninput="updateProductName()" />
+
+        <div class="product-box" id="productNameBox">اسم المنتج: Frozen strawberries</div>
+
+        <div class="hint">
+          لا تعرف HS Code المنتج؟
+          <a href="https://www.trademap.org/" target="_blank" rel="noopener noreferrer">ابحث في Trade Map</a>
+        </div>
+
+        <label for="country">EU Country / Market</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="country" onchange="onCountryChange()" style="flex:1;">
+            <option value="__ALL__">🌍 All EU (27 countries)</option>
+            <optgroup label="── Top Markets ──">
+              <option value="Germany">Germany 🇩🇪</option>
+              <option value="France">France 🇫🇷</option>
+              <option value="Netherlands">Netherlands 🇳🇱</option>
+              <option value="Italy">Italy 🇮🇹</option>
+              <option value="Spain">Spain 🇪🇸</option>
+              <option value="Belgium">Belgium 🇧🇪</option>
+              <option value="Poland">Poland 🇵🇱</option>
+            </optgroup>
+            <optgroup label="── All 27 EU Countries ──">
+              <option value="Austria">Austria 🇦🇹</option>
+              <option value="Belgium">Belgium 🇧🇪</option>
+              <option value="Bulgaria">Bulgaria 🇧🇬</option>
+              <option value="Croatia">Croatia 🇭🇷</option>
+              <option value="Cyprus">Cyprus 🇨🇾</option>
+              <option value="Czech Republic">Czech Republic 🇨🇿</option>
+              <option value="Denmark">Denmark 🇩🇰</option>
+              <option value="Estonia">Estonia 🇪🇪</option>
+              <option value="Finland">Finland 🇫🇮</option>
+              <option value="France">France 🇫🇷</option>
+              <option value="Germany">Germany 🇩🇪</option>
+              <option value="Greece">Greece 🇬🇷</option>
+              <option value="Hungary">Hungary 🇭🇺</option>
+              <option value="Ireland">Ireland 🇮🇪</option>
+              <option value="Italy">Italy 🇮🇹</option>
+              <option value="Latvia">Latvia 🇱🇻</option>
+              <option value="Lithuania">Lithuania 🇱🇹</option>
+              <option value="Luxembourg">Luxembourg 🇱🇺</option>
+              <option value="Malta">Malta 🇲🇹</option>
+              <option value="Netherlands">Netherlands 🇳🇱</option>
+              <option value="Poland">Poland 🇵🇱</option>
+              <option value="Portugal">Portugal 🇵🇹</option>
+              <option value="Romania">Romania 🇷🇴</option>
+              <option value="Slovakia">Slovakia 🇸🇰</option>
+              <option value="Slovenia">Slovenia 🇸🇮</option>
+              <option value="Spain">Spain 🇪🇸</option>
+              <option value="Sweden">Sweden 🇸🇪</option>
+            </optgroup>
+          </select>
+          <span id="countryBadge" style="font-size:11px; color:#10b981; font-weight:700; white-space:nowrap;"></span>
+        </div>
+
+        <div class="action-btns" style="grid-template-columns:1fr auto auto;">
+          <button class="primary" id="runBtn"   onclick="goToExportIntelligence()">Export Intelligence</button>
+          <button class="ghost"   id="resetBtn" onclick="resetAll()">Reset</button>
+
+          
+        </div>
+      </div>
+
+      <!-- Connection Settings — Secure (hidden sensitive fields) -->
+      <div class="card">
+        <div class="card-header">
+          <h2>⚡ حالة الاتصال</h2>
+          <h3>اتصال الباك إند والمصادقة</h3>
+        </div>
+
+        <!-- Status indicators -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--line);">
+            <span style="font-size:13px;font-weight:700;">🖥️ الباك إند</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="beStatusDot" style="width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block;"></span>
+              <span id="beStatusText" style="font-size:12px;color:var(--muted);">غير محدد</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--line);">
+            <span style="font-size:13px;font-weight:700;">🔐 Supabase Auth</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="authStatusDot" style="width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block;"></span>
+              <span id="authStatusText" style="font-size:12px;color:var(--muted);">غير مسجّل الدخول</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test button -->
+        <div class="btns">
+          <button class="secondary" id="healthBtn" onclick="testConnection()" style="flex:1;">🔄 اختبار الاتصال</button>
+        </div>
+
+        <div class="status-box" id="connectionStatus" style="margin-top:10px;">انقر اختبار الاتصال للتحقق من حالة النظام</div>
+
+        <!-- Developer Mode (collapsed by default) -->
+        <details style="margin-top:14px;">
+          <summary style="font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;letter-spacing:.5px;user-select:none;">
+            ⚙️ إعدادات المطوّر (للمسؤول فقط)
+          </summary>
+          <div style="margin-top:12px;padding:14px;background:rgba(0,0,0,.25);border-radius:10px;border:1px solid var(--line);">
+            <label for="backendUrl" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;">Backend Base URL</label>
+            <input id="backendUrl" placeholder="مثال: http://localhost:4000" value="http://localhost:4000" style="margin-bottom:10px;margin-top:6px;"/>
+            <label for="accessToken" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;">Supabase Access Token</label>
+            <textarea id="accessToken" placeholder="سيظهر هنا التوكن تلقائيًا بعد تسجيل الدخول" style="min-height:60px;font-size:11px;margin-top:6px;filter:blur(4px);transition:filter .2s;" onfocus="this.style.filter='none'" onblur="this.style.filter='blur(4px)'"></textarea>
+            <div style="margin-top:8px;">
+              <button class="success" id="saveBtn" onclick="saveSettings()" style="width:100%;font-size:12px;">💾 حفظ الإعدادات</button>
+            </div>
+            <div class="hint" style="margin-top:8px;font-size:11px;">
+              ⚡ التوكن يتجدد تلقائيًا قبل كل طلب. الإعدادات محفوظة محليًا في المتصفح فقط.
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+
+
+
+  </div><!-- end .wrap -->
+
+
+  <!-- ══════════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════════ -->
+  <script>
+
+  /* ─── CONFIGURE MARKED ─── */
+  if (typeof marked !== "undefined") {
+    marked.setOptions({ breaks: true, gfm: true });
+  }
+
+  /* ─── CONFIG ─── */
+  const SUPABASE_URL      = "https://hfvhivxpaqnqaooyqmaw.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmdmhpdnhwYXFucWFvb3lxbWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NDg1OTMsImV4cCI6MjA4ODAyNDU5M30.HaTO3Ngeq6oaw9eLddgJpxg-_6fwD6G9aj8EJZSRUcY";
+
+  const REQUEST_TIMEOUT_MS = 180000; // 180 ثانية
+
+  /* ─── HS MAP — موسّع ─── */
+  const hsProductMap = {
+    "081110": "Frozen strawberries",
+    "081120": "Frozen raspberries",
+    "081190": "Frozen fruits (other)",
+    "080510": "Fresh oranges",
+    "080520": "Mandarins & clementines",
+    "080550": "Lemons & limes",
+    "080610": "Fresh grapes",
+    "070200": "Tomatoes",
+    "070320": "Garlic",
+    "070310": "Onions",
+    "100630": "Rice (semi/wholly milled)",
+    "100610": "Rice in husks",
+    "090111": "Coffee (not roasted)",
+    "030617": "Frozen shrimp & prawns",
+    "020130": "Fresh beef (boneless)",
+    "040221": "Milk powder",
+    "170111": "Raw cane sugar",
+    "151190": "Palm oil (other)",
+    "160414": "Tuna (prepared)",
+    "190190": "Food preparations (NES)"
+  };
+
+  /* ─── HELPERS ─── */
+  const qs = (id) => document.getElementById(id);
+
+  function setButtonLoading(btnId, isLoading, loadingText) {
+    const btn = qs(btnId);
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-left:6px;"></span> ${loadingText || "Loading..."}`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+    }
+  }
+
+  function showLoader(id, show) {
+    const el = qs(id);
+    if (el) el.classList.toggle("show", !!show);
+  }
+
+  /* ─── SETTINGS ─── */
+  function getSettings() {
+    return {
+      backendUrl:  (localStorage.getItem("wx_backend_url")  || "http://localhost:4000").replace(/\/$/, ""),
+      accessToken: localStorage.getItem("wx_access_token")  || ""
+    };
+  }
+
+  function loadSettings() {
+    const s = getSettings();
+    qs("backendUrl").value   = s.backendUrl;
+    qs("accessToken").value  = s.accessToken;
+    qs("connectionStatus").innerHTML = s.accessToken
+      ? '<span class="status-ok">✓ الإعدادات محفوظة</span>'
+      : '<span class="status-warn">⚠ لم يتم حفظ التوكن بعد — سجّل الدخول أولًا</span>';
+  }
+
+  function saveSettings() {
+    localStorage.setItem("wx_backend_url",   qs("backendUrl").value.trim().replace(/\/$/, ""));
+    localStorage.setItem("wx_access_token",  qs("accessToken").value.trim());
+    loadSettings();
+  }
+
+  /* ─── FETCH WITH TIMEOUT ─── */
+  async function fetchWithTimeout(url, options, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      return res;
+    } catch (err) {
+      if (err.name === "AbortError") throw new Error(`انتهت مهلة الاتصال (${timeoutMs/1000} ثانية)`);
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /* ─── TEST CONNECTION ─── */
+  async function testConnection() {
+    const s = getSettings();
+    if (!s.backendUrl) { alert("احفظ Backend URL أولًا"); return; }
+
+    setButtonLoading("healthBtn", true, "Testing...");
+    qs("connectionStatus").textContent = "جارٍ اختبار الاتصال...";
+
+    try {
+      const res  = await fetchWithTimeout(`${s.backendUrl}/health`, {}, 10000);
+      const data = await res.json().catch(() => ({}));
+      qs("connectionStatus").innerHTML =
+        `<span class="status-ok">✓ Backend OK — ${data.service || "connected"} (v${data.version || "?"})</span>`;
+    } catch (err) {
+      qs("connectionStatus").innerHTML =
+        `<span class="status-bad">✗ فشل الاتصال: ${err.message}</span>`;
+    } finally {
+      setButtonLoading("healthBtn", false);
+    }
+  }
+
+  /* ─── PRODUCT NAME ─── */
+  function updateProductName() {
+    const hs      = qs("hs").value.trim();
+    const product = hsProductMap[hs] || (hs.length >= 4 ? `Product (${hs})` : "—");
+    const country = qs("country").value || "—";
+
+    qs("productNameBox").textContent = `اسم المنتج: ${product}`;
+    qs("statProduct").textContent    = product;
+    qs("statHs").textContent         = hs || "—";
+    qs("statMarket").textContent     = country;
+    const badge = qs("countryBadge");
+    if (badge) {
+      const sel = qs("country");
+      badge.textContent = (sel && sel.value === "__ALL__") ? "🌍 27 دولة" : "";
+    }
+    qs("heroProduct").textContent    = product;
+    qs("heroHs").textContent         = hs || "—";
+    qs("heroMarket").textContent     = (qs("country") && qs("country").value === "__ALL__") ? "EU-27" : country;
+  }
+
+  /* ─── SOURCES / INFO ─── */
+  function getSelectedSources()   { return Array.from(document.querySelectorAll(".srcOpt:checked")).map(e => e.value); }
+  function getRequestedInfo()     { return Array.from(document.querySelectorAll(".infoOpt:checked")).map(e => e.value); }
+  function clearSources()         { document.querySelectorAll(".srcOpt").forEach(e  => e.checked = false); }
+  function clearRequestedInfo()   { document.querySelectorAll(".infoOpt").forEach(e => e.checked = false); }
+
+  function applyChecks(selector, values) {
+    document.querySelectorAll(selector).forEach(e => { e.checked = values.includes(e.value); });
+  }
+
+  function presetSources(mode) {
+    const map = {
+      auto:     ["trade_map","access2markets","eurostat"],
+      official: ["trade_map","access2markets","eurostat","eu_food_safety","eu_trade_regulations"],
+      buyers:   ["europages","kompass","wlw","linkedin_companies","google_b2b"],
+      stats:    ["trade_map","eurostat"]
+    };
+    applyChecks(".srcOpt", map[mode] || []);
+  }
+
+  function presetInfo(mode) {
+    const map = {
+      brief:  ["full_export_brief","import_statistics","market_access_rules","competitor_insights"],
+      buyers: ["buyer_list","buyer_message","competitor_insights"],
+      rules:  ["market_access_rules","food_safety_requirements","packaging_labeling"],
+      stats:  ["import_statistics","competitor_insights"]
+    };
+    applyChecks(".infoOpt", map[mode] || []);
+  }
+
+  /* ══════════════════════════════════════════════════
+     SOURCES DATABASE — Master registry of all sources
+     Each key matches the backend "sourcesUsed" values
+  ══════════════════════════════════════════════════ */
+  const SOURCES_DB = {
+    trade_map: {
+      name: "ITC Trade Map",
+      badge: "EU",
+      badgeClass: "eu",
+      year: "2024",
+      icon: "📊",
+      desc: "إحصاءات التجارة الدولية — واردات وصادرات حسب HS Code والدولة والقيمة",
+      url: "https://www.trademap.org/",
+      domain: "trademap.org",
+      authority: "ITC / WTO / UNCTAD"
+    },
+    access2markets: {
+      name: "EU Access2Markets",
+      badge: "EU",
+      badgeClass: "eu",
+      year: "2024",
+      icon: "🇪🇺",
+      desc: "متطلبات الدخول للسوق الأوروبي — رسوم جمركية، شهادات، تشريعات SPS",
+      url: "https://trade.ec.europa.eu/access-to-markets/",
+      domain: "trade.ec.europa.eu",
+      authority: "European Commission"
+    },
+    eurostat: {
+      name: "Eurostat",
+      badge: "EU",
+      badgeClass: "eu",
+      year: "2023–2024",
+      icon: "📈",
+      desc: "الإحصاءات الرسمية للاتحاد الأوروبي — أسواق، استهلاك، اتجاهات",
+      url: "https://ec.europa.eu/eurostat",
+      domain: "ec.europa.eu/eurostat",
+      authority: "European Commission"
+    },
+    eu_food_safety: {
+      name: "EU Food Safety (EFSA)",
+      badge: "EU",
+      badgeClass: "eu",
+      year: "2024",
+      icon: "🥗",
+      desc: "متطلبات السلامة الغذائية والتغليف والوسم للأسواق الأوروبية",
+      url: "https://food.ec.europa.eu/",
+      domain: "food.ec.europa.eu",
+      authority: "EFSA / European Commission"
+    },
+    eu_trade_regulations: {
+      name: "EU Trade Regulations",
+      badge: "EU",
+      badgeClass: "eu",
+      year: "2024",
+      icon: "⚖️",
+      desc: "سياسات التجارة الأوروبية، الاتفاقيات، اللوائح الرسمية",
+      url: "https://policy.trade.ec.europa.eu/",
+      domain: "policy.trade.ec.europa.eu",
+      authority: "DG Trade – European Commission"
+    },
+    cbi: {
+      name: "CBI – Export to Europe",
+      badge: "CBI",
+      badgeClass: "cbi",
+      year: "2024",
+      icon: "🌱",
+      desc: "مركز ترويج الواردات من الدول النامية — دليل التصدير للأسواق الأوروبية وتقارير القطاعات",
+      url: "https://www.cbi.eu/market-information",
+      domain: "cbi.eu",
+      authority: "Netherlands Enterprise Agency (RVO)"
+    },
+    egyptian_customs: {
+      name: "الجمارك المصرية",
+      badge: "EG",
+      badgeClass: "eg",
+      year: "2024",
+      icon: "🏛️",
+      desc: "Egyptian Customs Authority — رسوم الصادرات، الأكواد الجمركية، الإجراءات الرسمية",
+      url: "http://www.customs.gov.eg/",
+      domain: "customs.gov.eg",
+      authority: "وزارة المالية المصرية"
+    },
+    gafi: {
+      name: "GAFI – هيئة الاستثمار",
+      badge: "EG",
+      badgeClass: "eg",
+      year: "2024",
+      icon: "🏗️",
+      desc: "الهيئة العامة للاستثمار والمناطق الحرة — فرص التصدير والتسهيلات الاستثمارية",
+      url: "https://www.gafi.gov.eg/",
+      domain: "gafi.gov.eg",
+      authority: "وزارة الاستثمار المصرية"
+    },
+    export_egypt: {
+      name: "صادر مصر",
+      badge: "EG",
+      badgeClass: "eg",
+      year: "2024",
+      icon: "📦",
+      desc: "بوابة تنمية الصادرات المصرية — إحصاءات وبيانات الصادرات",
+      url: "https://www.exportegypt.gov.eg/",
+      domain: "exportegypt.gov.eg",
+      authority: "المركز المصري لتنمية الصادرات"
+    },
+    europages: {
+      name: "Europages",
+      badge: "B2B",
+      badgeClass: "b2b",
+      year: "2024",
+      icon: "🔍",
+      desc: "أكبر دليل أعمال أوروبي — بحث عن مستوردين وموزعين (3M+ شركة)",
+      url: "https://www.europages.com/",
+      domain: "europages.com",
+      authority: "Europages SA"
+    },
+    kompass: {
+      name: "Kompass",
+      badge: "B2B",
+      badgeClass: "b2b",
+      year: "2024",
+      icon: "🧭",
+      desc: "دليل شركات دولي مع تصنيف حسب القطاع والدولة — 75+ دولة",
+      url: "https://www.kompass.com/",
+      domain: "kompass.com",
+      authority: "Kompass International"
+    },
+    wlw: {
+      name: "WLW Europe",
+      badge: "B2B",
+      badgeClass: "b2b",
+      year: "2024",
+      icon: "🏭",
+      desc: "دليل B2B أوروبي متخصص — ألمانيا والنمسا وسويسرا (DACH region)",
+      url: "https://www.wlw.com/",
+      domain: "wlw.com",
+      authority: "Wer liefert was GmbH"
+    },
+    ai_analysis: {
+      name: "AI Export Advisor",
+      badge: "AI",
+      badgeClass: "b2b",
+      year: "2024",
+      icon: "🤖",
+      desc: "تحليل ذكاء اصطناعي مولّد بناءً على البيانات المتاحة — للاسترشاد وليس مرجعاً رسمياً",
+      url: "#",
+      domain: "WissamXpo AI",
+      authority: "Anthropic Claude API"
+    }
+  };
+
+  /* ─── Helper: normalize source key ─── */
+  function normKey(raw) {
+    const s = (typeof raw === "string" ? raw : (raw.label || raw.name || "")).toLowerCase().trim();
+    if (s.includes("trade map") || s.includes("trademap"))     return "trade_map";
+    if (s.includes("access2market") || s.includes("access to market")) return "access2markets";
+    if (s.includes("eurostat"))                                return "eurostat";
+    if (s.includes("food") || s.includes("efsa"))             return "eu_food_safety";
+    if (s.includes("regulation") || s.includes("policy"))     return "eu_trade_regulations";
+    if (s.includes("cbi"))                                     return "cbi";
+    if (s.includes("customs") || s.includes("جمارك"))        return "egyptian_customs";
+    if (s.includes("gafi") || s.includes("استثمار"))         return "gafi";
+    if (s.includes("export egypt") || s.includes("صادر"))    return "export_egypt";
+    if (s.includes("europages"))                               return "europages";
+    if (s.includes("kompass"))                                 return "kompass";
+    if (s.includes("wlw"))                                     return "wlw";
+    if (s.includes("ai") || s.includes("claude"))             return "ai_analysis";
+    return null;
+  }
+
+  /* ─── Build one cite card ─── */
+  function buildCiteCard(src) {
+    return `
+    <div class="cite-card">
+      <div class="cite-name">
+        <span>${src.icon}</span>
+        <span>${src.name}</span>
+        <span class="src-badge ${src.badgeClass}" style="margin-right:auto;">${src.badge}</span>
+      </div>
+      <div class="cite-desc">${src.desc}</div>
+      <div class="src-meta">
+        <span>📅 ${src.year}</span>
+        <span>🏛 ${src.authority}</span>
+      </div>
+      <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="src-link">${src.domain} ↗</a>
+    </div>`;
+  }
+
+  /* ─── RENDER CITATION PANEL (main function called after AI response) ─── */
+  function renderCitationPanel(sourcesUsed = [], sourceUrls = []) {
+    const panel = qs("citationPanel");
+    if (!panel) return;
+
+    // Collect keys from sourcesUsed list
+    const keys = new Set();
+
+    if (Array.isArray(sourcesUsed) && sourcesUsed.length) {
+      sourcesUsed.forEach(s => {
+        const k = normKey(s);
+        if (k) keys.add(k);
+      });
+    }
+
+    // Also parse any URL strings / objects
+    if (Array.isArray(sourceUrls) && sourceUrls.length) {
+      sourceUrls.forEach(u => {
+        const raw = typeof u === "string" ? u : (u.url || u.label || "");
+        const k   = normKey(raw);
+        if (k) keys.add(k);
+      });
+    }
+
+    // Fallback: always show core sources if nothing returned
+    if (keys.size === 0) {
+      ["trade_map","access2markets","eurostat","cbi","eu_food_safety"].forEach(k => keys.add(k));
+    }
+
+    // Build cards
+    const cards = [...keys].map(k => SOURCES_DB[k] ? buildCiteCard(SOURCES_DB[k]) : "").filter(Boolean);
+    panel.innerHTML = cards.join("") ||
+      `<div class="source-link-item" style="grid-column:1/-1;">لا توجد مصادر محددة لهذا التحليل.</div>`;
+  }
+
+  /* ─── Legacy stubs (keep callers working) ─── */
+  function renderSourcesSummary(s = []) { renderCitationPanel(s, []); }
+  function renderSourceUrls(u = [])     { renderCitationPanel([], u); }
+
+  /* ─── UPDATE STATS BAR ─── */
+  function updateStats(data) {
+    const planLabel = localStorage.getItem("wx_user_plan") || "pro";
+    if (qs("statPlan"))  qs("statPlan").textContent  = planLabel;
+    if (qs("userPlan"))  qs("userPlan").textContent  = planLabel;
+    if (data.remaining !== undefined) {
+      const rem = data.remaining;
+      if (qs("statRemaining"))  qs("statRemaining").textContent  = rem;
+      if (qs("userRemaining"))  qs("userRemaining").textContent  = `${rem} credits`;
+      // Persist credits count
+      localStorage.setItem("wx_user_remaining", rem);
+    }
+  }
+
+  /* ─── REQUIRE SETTINGS (FIX: targetBoxId param) ─── */
+  function requireSavedSettings(targetBoxId = "aiBox") {
+    const s = getSettings();
+    if (!s.backendUrl) {
+      qs(targetBoxId).textContent = "خطأ: Backend URL غير محفوظ — احفظ الإعدادات أولًا.";
+      return null;
+    }
+    if (!s.accessToken) {
+      qs(targetBoxId).textContent = "خطأ: لا يوجد access token — سجّل الدخول أولًا ثم احفظ الإعدادات.";
+      return null;
+    }
+    return s;
+  }
+
+  /* ─── TOKEN REFRESH ─── */
+  async function getFreshToken() {
+    if (!supabaseClient) return getSettings().accessToken;
+    try {
+      // First try getSession (faster, uses cached session)
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      if (sessionData?.session?.access_token) {
+        const token = sessionData.session.access_token;
+        localStorage.setItem("wx_access_token", token);
+        if (qs("accessToken")) qs("accessToken").value = token;
+        return token;
+      }
+      // Fallback: try refresh
+      const { data: refreshData } = await supabaseClient.auth.refreshSession();
+      if (refreshData?.session?.access_token) {
+        const token = refreshData.session.access_token;
+        localStorage.setItem("wx_access_token", token);
+        if (qs("accessToken")) qs("accessToken").value = token;
+        return token;
+      }
+    } catch (_) { /* ignore */ }
+    return getSettings().accessToken;
+  }
+
+  /* ─── BUILD PAYLOAD ─── */
+  function buildPayload() {
+    const sources = getSelectedSources();
+    return {
+      hs_code:      qs("hs").value.trim(),
+      product:      qs("statProduct").textContent,
+      target_market: (qs("country").value === "__ALL__") ? "European Union (EU-27)" : qs("country").value,
+      company_info: qs("userQuestion").value.trim(),
+      sources_mode: sources.length > 0 ? sources.join(",") : "auto"
+    };
+  }
+
+  /* ─── RUN INTELLIGENCE ─── */
+  async function runIntelligence() {
+    const s = requireSavedSettings("aiBox");
+    if (!s) return;
+
+    qs("aiBox").textContent = "جارٍ تشغيل AI Export Advisor...";
+    setButtonLoading("runBtn", true, "Running...");
+    showLoader("aiLoader", true);
+
+    try {
+      const token = await getFreshToken();
+      const res   = await fetchWithTimeout(`${s.backendUrl}/api/ai/export-advisor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify(buildPayload())
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        qs("aiBox").textContent = `Backend error (${res.status}):\n${data.error || data.message || "Unknown error"}`;
+        return;
+      }
+
+      const text = typeof data.advisor === "string"
+        ? data.advisor
+        : data.advisor?.text ?? JSON.stringify(data, null, 2);
+
+      qs("aiBox").innerHTML = marked.parse(text);
+      qs("aiBox").classList.add("fade-in");
+      setTimeout(() => qs("aiBox").classList.remove("fade-in"), 400);
+
+      updateStats(data);
+      renderCitationPanel(data.sourcesUsed || [], data.sourceUrls || []);
+      renderExportChart(text);
+
+    } catch (err) {
+      qs("aiBox").textContent = `خطأ في الاتصال:\n${err.message}`;
+    } finally {
+      setButtonLoading("runBtn", false);
+      showLoader("aiLoader", false);
+    }
+  }
+
+  /* ─── GENERATE BUYER MESSAGE ─── */
+  /* ── Buyers data store ── */
+  let buyersData = [];
+
+  /* switchBuyerTab removed — tabs no longer exist */
+
+  /* ── Parse markdown table from AI response ── */
+  function parseBuyersFromMarkdown(text) {
+    const buyers = [];
+    const lines  = text.split("\n");
+    let inTable  = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line.startsWith("|")) { inTable = false; continue; }
+
+      // Detect table header separator line (---|---|)
+      if (line.replace(/[\s|:-]/g, "") === "") { inTable = true; continue; }
+
+      const cells = line.split("|").map(c => c.trim()).filter(Boolean);
+      if (!cells.length) continue;
+
+      // Skip header rows
+      if (!inTable) { inTable = true; continue; }
+
+      // Try to map columns flexibly
+      const obj = {
+        rank:    buyers.length + 1,
+        name:    "",
+        activity:"",
+        city:    "",
+        website: "",
+        note:    ""
+      };
+
+      // Heuristic: detect which column is which by content
+      cells.forEach((cell, idx) => {
+        const lower = cell.toLowerCase();
+        if (idx === 0 && /^\d+$/.test(cell)) { obj.rank = parseInt(cell); return; }
+        // Website detection
+        if (lower.includes(".com") || lower.includes(".it") || lower.includes(".de") ||
+            lower.includes(".fr")  || lower.includes(".nl") || lower.includes(".eu") ||
+            lower.includes("http") || lower.includes("www")) {
+          obj.website = cell.replace(/^https?:\/\//, "").split("/")[0]; return;
+        }
+        // City detection (often short, capitalized, may have country in parens)
+        if (!obj.name && idx >= 1 && cell.length > 2 && cell.length < 60 &&
+            /^[A-ZА-Яء-ي؀-ۿ]/.test(cell) && !cell.includes("استيراد") &&
+            !cell.includes("توزيع") && !cell.includes("تصنيع") && !cell.includes("تجهيز")) {
+          obj.name = cell; return;
+        }
+        // Activity
+        if (cell.length > 10 && (cell.includes("استيراد") || cell.includes("توزيع") ||
+            cell.includes("تصنيع") || cell.includes("تجهيز") || cell.includes("بيع") ||
+            cell.includes("import") || cell.includes("distribut") || cell.includes("wholesale"))) {
+          obj.activity = cell; return;
+        }
+        // Fill remaining
+        if (!obj.name && cell.length > 2)     { obj.name     = cell; return; }
+        if (!obj.activity && cell.length > 5)  { obj.activity = cell; return; }
+        if (!obj.city && cell.length < 40)     { obj.city     = cell; return; }
+        obj.note += (obj.note ? " | " : "") + cell;
+      });
+
+      if (obj.name && obj.name.length > 1) buyers.push(obj);
+    }
+
+    // Fallback: extract numbered list items
+    if (buyers.length === 0) {
+      const numbered = text.match(/\d+\.\s+\*{0,2}([^\n*]+)\*{0,2}/g) || [];
+      numbered.forEach((item, i) => {
+        const clean = item.replace(/^\d+\.\s+\**/,"").replace(/\*+$/,"").trim();
+        if (clean.length > 3) buyers.push({ rank:i+1, name:clean, activity:"", city:"", website:"", note:"" });
+      });
+    }
+
+    return buyers;
+  }
+
+  /* ── Render Potential Buyers table ── */
+  function renderBuyersTable(buyers) {
+    buyersData = buyers;
+    try {
+      localStorage.setItem('wx_buyers_data', JSON.stringify(buyers));
+      localStorage.setItem('wx_buyers_product', qs('statProduct')?.textContent || '');
+      localStorage.setItem('wx_buyers_market',  qs('statMarket')?.textContent  || '');
+      localStorage.setItem('wx_buyers_hs',      qs('statHs')?.textContent      || '');
+    } catch(e) {}
+    const tbody = qs("buyersTableBody");
+    const count = qs("buyersCount");
+
+    if (!buyers.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">
+        لم يتم العثور على بيانات مشترين — حاول تشغيل التحليل مرة أخرى.
+      </td></tr>`;
+      return;
+    }
+
+    if (count) count.textContent = `${buyers.length} مشترٍ محتمل`;
+
+    tbody.innerHTML = buyers.map((b, i) => {
+      const badge  = ["🥇","🥈","🥉"][i] || (i+1);
+      const bClass = i<3 ? ["gold","silver","bronze"][i] : "";
+      const site   = b.website
+        ? `<a href="https://${b.website}" target="_blank" rel="noopener" class="website-link">${b.website} ↗</a>`
+        : "—";
+      const country   = b.city     || "—";
+      const impType   = b.activity || "—";
+      const impVolume = b.note     || "—";
+      const linkedinBtn = `<button class="buyer-action" onclick="window.open('https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(b.name)}','_blank')">🔗 LinkedIn</button>`;
+
+      return `<tr>
+        <td><span class="rank-badge ${bClass}">${badge}</span></td>
+        <td><strong>${b.name}</strong><br><small style="color:var(--muted);font-size:11px;">${site}</small></td>
+        <td style="font-size:12px;">${country}</td>
+        <td style="font-size:12px;">${impType}</td>
+        <td style="font-size:12px;color:var(--muted);">${impVolume}</td>
+        <td style="white-space:nowrap;">${linkedinBtn}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  /* ── Filter buyers table ── */
+  function filterBuyersTable(query) {
+    const q = query.toLowerCase();
+    const rows = qs("buyersTableBody").querySelectorAll("tr");
+    rows.forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
+    });
+  }
+
+  /* ── Export Potential Buyers as PDF ── */
+  function exportBuyersPDF() {
+    if (!buyersData.length) { alert("لا توجد بيانات لتصديرها"); return; }
+    const rows = buyersData.map((b, i) =>
+      `<tr>
+        <td>${i+1}</td>
+        <td><strong>${b.name}</strong></td>
+        <td>${b.city || "—"}</td>
+        <td>${b.activity || "—"}</td>
+        <td>${b.note || "—"}</td>
+        <td>${b.website ? b.website : "—"}</td>
+      </tr>`
+    ).join("");
+
+    const win = window.open("", "_blank");
+    if (!win) { alert("السماح بالـ popups لتصدير PDF"); return; }
+    const product = qs("statProduct")?.textContent || "المنتج";
+    const market  = qs("statMarket")?.textContent  || "السوق";
+    win.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Potential Buyers — ${product}</title>
+  <style>
+    body { font-family: Arial, sans-serif; direction: rtl; padding: 30px; color: #111; }
+    h1 { font-size: 20px; color: #1d4ed8; border-bottom: 2px solid #1d4ed8; padding-bottom: 8px; }
+    h2 { font-size: 15px; color: #6b7280; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #dbeafe; padding: 9px 12px; text-align: right; font-weight: 700; border: 1px solid #93c5fd; }
+    td { padding: 8px 12px; border: 1px solid #e5e7eb; }
+    @media print { button { display: none; } }
+  </style>
+</head>
+<body>
+  <h1>🏢 Potential Buyers — ${product}</h1>
+  <h2>السوق المستهدف: ${market}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>اسم الشركة</th>
+        <th>الدولة / المدينة</th>
+        <th>نوع المستورد</th>
+        <th>حجم الاستيراد</th>
+        <th>الموقع</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <script>window.onload=()=>{window.print();}<\/script>
+</body></html>`);
+    win.document.close();
+  }
+
+  /* ── Export buyers as CSV ── */
+  function exportBuyersCSV() {
+    if (!buyersData.length) { alert("لا توجد بيانات للتصدير"); return; }
+    const headers = ["#","اسم الشركة","النشاط","المدينة","الموقع","ملاحظات"];
+    const rows    = buyersData.map(b =>
+      [b.rank, b.name, b.activity, b.city, b.website, b.note]
+      .map(c => `"${String(c||"").replace(/"/g,'""')}"`)
+      .join(",")
+    );
+    const csv  = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type:"text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = `buyers_${Date.now()}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  /* ── Copy buyers table as text ── */
+  function copyBuyersTable() {
+    const text = buyersData.map(b =>
+      `${b.rank}. ${b.name} | ${b.activity} | ${b.city} | ${b.website}`
+    ).join("\n");
+    navigator.clipboard.writeText(text)
+      .then(()=>alert("✓ تم نسخ قائمة المشترين"))
+      .catch(()=>alert("تعذّر النسخ"));
+  }
+
+  /* ── Open email draft in default mail app ── */
+  function openEmailDraft(companyName) {
+    const product  = qs("statProduct")?.textContent || "المنتج";
+    const subject  = encodeURIComponent(`Export Partnership Inquiry — ${product} from Egypt`);
+    const body     = encodeURIComponent(
+      `Dear ${companyName} Team,\n\nWe are an Egyptian exporter of ${product} and would like to explore a potential supply partnership.\n\nBest regards`
+    );
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_self");
+  }
+
+  /* ── generateBuyerMessage: removed (Buyer Message feature removed) ── */
+  async function generateBuyerMessage() {
+    // Feature removed — Potential Buyers are now populated via Export Advisor
+    console.info("generateBuyerMessage: feature removed");
+  }
+
+  /* ─── COPY ─── */
+  function copyBoxText(id) {
+    const txt = qs(id)?.innerText || "";
+    if (!txt.trim()) { alert("لا يوجد محتوى للنسخ"); return; }
+    navigator.clipboard.writeText(txt)
+      .then(() => alert("✓ تم النسخ"))
+      .catch(() => alert("تعذّر النسخ"));
+  }
+
+  /* ─── EXPORT PDF (Arabic-safe via print window) ─── */
+  function exportBoxToPdf(title, boxId) {
+    const html  = qs(boxId)?.innerHTML?.trim() || "";
+    const plain = qs(boxId)?.innerText?.trim() || "";
+    if (!plain || plain.startsWith("سيظهر")) { alert("لا يوجد محتوى لتصديره"); return; }
+
+    const win = window.open("", "_blank");
+    if (!win) { alert("السماح بالـ popups لتصدير PDF"); return; }
+
+    win.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family:'Cairo',Arial,sans-serif; padding:36px; direction:rtl; color:#111; line-height:2; font-size:14px; max-width:860px; margin:0 auto; }
+    h1,h2,h3 { color:#1d4ed8; font-weight:800; margin:16px 0 8px; }
+    h1 { font-size:22px; border-bottom:2px solid #1d4ed8; padding-bottom:10px; }
+    table { width:100%; border-collapse:collapse; margin:12px 0; }
+    th { background:#dbeafe; padding:8px; text-align:right; font-weight:700; border:1px solid #93c5fd; }
+    td { padding:8px; border:1px solid #cbd5e1; }
+    @media print { button { display:none; } }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <div>${html}</div>
+  <script>window.onload=()=>{window.print();}<\/script>
+</body></html>`);
+    win.document.close();
+  }
+
+  /* ─── RESET ─── */
+  function resetAll() {
+    qs("hs").value          = "081110";
+    if (qs("country")) qs("country").value = "Germany";
+    qs("userQuestion").value = "";
+    clearSources();
+    clearRequestedInfo();
+
+    qs("aiBox").textContent  = "سيظهر هنا رد الباك إند من /api/ai/export-advisor";
+    if (qs("buyersTableBody")) qs("buyersTableBody").innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-size:13px;">اضغط Run Export Intelligence لتوليد قائمة المشترين المحتملين</td></tr>';
+    buyersData = [];
+    if (qs("buyersCount")) qs("buyersCount").textContent = "";
+    const cp = qs("citationPanel");
+    if (cp) cp.innerHTML = '<div class="source-link-item" style="grid-column:1/-1;">ستظهر هنا المصادر الموثّقة تلقائيًا بعد تشغيل التحليل.</div>';
+    qs("statRemaining").textContent = "—";
+    qs("statPlan").textContent      = "—";
+    updateProductName();
+  }
+
+  /* ─── SUPABASE AUTH ─── */
+  let supabaseClient = null;
+
+  function initSupabase() {
+    // Supabase v2: the client is at window.supabase.createClient
+    const lib = window.supabase;
+    if (!lib || typeof lib.createClient !== "function") {
+      alert("Supabase library not loaded — check internet connection and reload the page");
+      return false;
+    }
+    if (!supabaseClient) {
+      supabaseClient = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return true;
+  }
+
+  /* Login — open modal */
+  function loginUser() {
+    // Always show the modal first
+    const modal = qs("loginModal");
+    if (!modal) return;
+    qs("loginEmail").value       = localStorage.getItem("wx_user_email") || "";
+    qs("loginPassword").value    = "";
+    qs("loginError").textContent = "";
+    modal.classList.add("show");
+    setTimeout(() => qs("loginEmail").focus(), 100);
+    // Init Supabase silently in background
+    initSupabase();
+  }
+
+  function closeLoginModal() {
+    const modal = qs("loginModal");
+    if (modal) modal.classList.remove("show");
+  }
+
+  function handleModalBackdrop(e) {
+    if (e.target === qs("loginModal")) closeLoginModal();
+  }
+
+  async function submitLogin() {
+    const email    = qs("loginEmail").value.trim();
+    const password = qs("loginPassword").value;
+    const errEl    = qs("loginError");
+    errEl.textContent = "";
+
+    if (!email || !password) {
+      errEl.textContent = "أدخل البريد الإلكتروني وكلمة المرور";
+      return;
+    }
+
+    // Ensure Supabase is initialized
+    if (!initSupabase()) {
+      // Try to wait a bit
+      await new Promise(r => setTimeout(r, 800));
+      if (!initSupabase()) {
+        errEl.textContent = "خطأ: مكتبة Supabase لم تُحمَّل — أعد تحميل الصفحة";
+        return;
+      }
+    }
+
+    setButtonLoading("submitLoginBtn", true, "جارٍ الدخول...");
+
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) { qs("loginError").textContent = error.message; return; }
+
+      const token = data?.session?.access_token || "";
+      if (!token) { qs("loginError").textContent = "فشل الحصول على التوكن"; return; }
+
+      // Save token + user info
+      localStorage.setItem("wx_access_token", token);
+      localStorage.setItem("wx_user_email", data.user?.email || "");
+      if (qs("accessToken")) qs("accessToken").value = token;
+
+      // Save settings + update UI
+      saveSettings();
+      updateUserBar(data.user);
+      closeLoginModal();
+
+      // Show success briefly
+      const dot = qs("userDot");
+      if (dot) { dot.className = "user-dot ok"; }
+
+    } catch (err) {
+      qs("loginError").textContent = err.message;
+    } finally {
+      setButtonLoading("submitLoginBtn", false);
+    }
+  }
+
+  async function logoutUser() {
+    if (!supabaseClient && !initSupabase()) return;
+    setButtonLoading("logoutBtn", true, "Logging out...");
+    try {
+      await supabaseClient.auth.signOut();
+      localStorage.removeItem("wx_access_token");
+      qs("accessToken").value = "";
+      loadSettings();
+      updateUserBar(null);
+    } finally {
+      setButtonLoading("logoutBtn", false);
+    }
+  }
+
+  /* User bar UI */
+  function updateUserBar(user) {
+    const dot    = qs("userDot");
+    const email  = qs("userEmail");
+    const sbSt   = qs("sbStatus");
+    if (user) {
+      if (dot)   dot.className      = "user-dot ok";
+      if (email) email.textContent  = user.email || "مسجّل الدخول";
+      if (sbSt)  { sbSt.textContent = "✓ مسجّل الدخول — " + (user.email || ""); sbSt.style.color = "#10b981"; }
+    } else {
+      if (dot)   dot.className      = "user-dot bad";
+      if (email) email.textContent  = "غير مسجّل الدخول";
+      if (qs("userPlan"))      qs("userPlan").textContent      = "";
+      if (qs("userRemaining")) qs("userRemaining").textContent = "";
+      if (sbSt)  sbSt.textContent   = "";
+    }
+    // Sync connection indicators
+    if (typeof updateConnectionIndicators === "function") {
+      updateConnectionIndicators(!!localStorage.getItem("wx_access_token"), !!user);
+    }
+  }
+
+  /* ─── CHECK EXISTING SESSION ON LOAD ─── */
+  async function checkExistingSession() {
+    const sbSt = qs("sbStatus");
+
+    // Wait for Supabase lib (max 5 seconds)
+    let attempts = 0;
+    while (typeof window.supabase === "undefined" && attempts < 50) {
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+
+    if (typeof window.supabase === "undefined") {
+      if (sbSt) sbSt.textContent = "⚠️ Supabase غير محمّل — تأكد من اتصال الإنترنت";
+      return;
+    }
+
+    if (!initSupabase()) return;
+    if (sbSt) sbSt.textContent = "✓ Supabase متصل";
+
+    try {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) { console.warn("getSession error:", error.message); }
+
+      if (data?.session?.access_token) {
+        const token = data.session.access_token;
+        localStorage.setItem("wx_access_token", token);
+        if (qs("accessToken")) qs("accessToken").value = token;
+        saveSettings();
+        updateUserBar(data.session.user);
+        if (sbSt) sbSt.textContent = "✓ مسجّل الدخول — " + (data.session.user?.email || "");
+
+        // Restore plan + credits
+        const plan      = localStorage.getItem("wx_user_plan")      || "pro";
+        const remaining = localStorage.getItem("wx_user_remaining")  || "";
+        if (qs("userPlan"))      qs("userPlan").textContent      = plan;
+        if (qs("statPlan"))      qs("statPlan").textContent      = plan;
+        if (remaining) {
+          if (qs("userRemaining"))  qs("userRemaining").textContent  = remaining + " credits";
+          if (qs("statRemaining"))  qs("statRemaining").textContent  = remaining;
+        }
+        return;
+      }
+    } catch (e) { console.warn("Session check error:", e); }
+
+    // No active session — restore saved token if any
+    const savedToken = localStorage.getItem("wx_access_token");
+    if (savedToken) {
+      if (qs("accessToken")) qs("accessToken").value = savedToken;
+      if (sbSt) sbSt.textContent = "⚠️ توكن محفوظ — سجّل الدخول مجدداً للتحقق";
+    } else {
+      if (sbSt) sbSt.textContent = "";
+    }
+  }
+
+
+  /* ─── ANALYTICS DASHBOARD ─── */
+  const chartInstances = {};
+
+  const C = {
+    font:   { family: "Cairo", size: 11 },
+    tick:   "#8fabd4",
+    grid:   "rgba(255,255,255,.06)",
+    text:   "#e8f0ff",
+    colors: ["rgba(59,130,246,.75)","rgba(16,185,129,.75)","rgba(245,158,11,.75)","rgba(239,68,68,.75)","rgba(139,92,246,.75)","rgba(236,72,153,.75)"],
+    solid:  ["#3b82f6","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899"]
+  };
+
+  function killChart(id) {
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+  }
+
+  function baseOpts(extraPlugins = {}) {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: C.text, font: C.font, padding: 10, boxWidth: 12 } },
+        tooltip: { backgroundColor: "rgba(6,15,30,.95)", titleFont: C.font, bodyFont: C.font, padding: 10, cornerRadius: 8 },
+        ...extraPlugins
+      },
+      scales: {
+        x: { ticks: { color: C.tick, font: C.font, maxRotation: 0 }, grid: { color: C.grid } },
+        y: { ticks: { color: C.tick, font: C.font }, grid: { color: C.grid } }
+      }
+    };
+  }
+
+  /* Extract numbers + context from AI text */
+  function extractMetrics(text) {
+    const product = qs("statProduct").textContent || "المنتج";
+    const market  = qs("statMarket").textContent  || "السوق";
+
+    // Try to find numbers with % from text
+    const pctRegex = /([\d]+(?:[.,][\d]+)?)\s*%/g;
+    const found = []; let m;
+    while ((m = pctRegex.exec(text)) !== null && found.length < 8) {
+      const v = parseFloat(m[1].replace(",","."));
+      if (v > 0 && v < 200) found.push(v);
+    }
+
+    // Try to find millions/billions
+    const bigRegex = /([\d]+(?:[.,][\d]+)?)\s*(?:مليون|million|M€|€M)/gi;
+    const bigs = []; let b;
+    while ((b = bigRegex.exec(text)) !== null && bigs.length < 6) {
+      bigs.push(parseFloat(b[1].replace(",",".")));
+    }
+
+    return { product, market, pcts: found, bigs };
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     EU COUNTRIES MASTER LIST — 27 countries with trade weights
+  ══════════════════════════════════════════════════════════ */
+  const EU27 = [
+    { en:"Germany",        ar:"ألمانيا",       weight:1.00, growth:3.2 },
+    { en:"France",         ar:"فرنسا",          weight:0.72, growth:2.8 },
+    { en:"Netherlands",    ar:"هولندا",          weight:0.65, growth:4.1 },
+    { en:"Italy",          ar:"إيطاليا",         weight:0.58, growth:2.5 },
+    { en:"Spain",          ar:"إسبانيا",         weight:0.48, growth:3.7 },
+    { en:"Belgium",        ar:"بلجيكا",          weight:0.42, growth:2.9 },
+    { en:"Poland",         ar:"بولندا",          weight:0.35, growth:5.8 },
+    { en:"Sweden",         ar:"السويد",          weight:0.30, growth:3.1 },
+    { en:"Austria",        ar:"النمسا",          weight:0.28, growth:2.6 },
+    { en:"Denmark",        ar:"الدنمارك",        weight:0.25, growth:3.0 },
+    { en:"Czech Republic", ar:"التشيك",          weight:0.22, growth:4.5 },
+    { en:"Romania",        ar:"رومانيا",         weight:0.20, growth:6.2 },
+    { en:"Portugal",       ar:"البرتغال",        weight:0.18, growth:3.8 },
+    { en:"Hungary",        ar:"المجر",           weight:0.17, growth:4.9 },
+    { en:"Finland",        ar:"فنلندا",          weight:0.16, growth:2.4 },
+    { en:"Greece",         ar:"اليونان",         weight:0.15, growth:3.5 },
+    { en:"Slovakia",       ar:"سلوفاكيا",        weight:0.13, growth:4.3 },
+    { en:"Ireland",        ar:"أيرلندا",         weight:0.12, growth:5.1 },
+    { en:"Croatia",        ar:"كرواتيا",         weight:0.10, growth:4.7 },
+    { en:"Bulgaria",       ar:"بلغاريا",         weight:0.09, growth:5.3 },
+    { en:"Lithuania",      ar:"ليتوانيا",        weight:0.08, growth:4.8 },
+    { en:"Slovenia",       ar:"سلوفينيا",        weight:0.07, growth:3.9 },
+    { en:"Latvia",         ar:"لاتفيا",          weight:0.07, growth:4.2 },
+    { en:"Estonia",        ar:"إستونيا",         weight:0.06, growth:4.0 },
+    { en:"Luxembourg",     ar:"لوكسمبورغ",       weight:0.05, growth:2.8 },
+    { en:"Cyprus",         ar:"قبرص",            weight:0.04, growth:3.6 },
+    { en:"Malta",          ar:"مالطا",           weight:0.03, growth:4.4 }
+  ];
+
+  /* ── Get selected country info ── */
+  function getSelectedCountry() {
+    const val = qs("country") ? qs("country").value : "Germany";
+    if (val === "__ALL__") return { en:"EU-27", ar:"الاتحاد الأوروبي", isAll:true };
+    return EU27.find(c => c.en === val) || { en: val, ar: val, weight:0.5, growth:3.5, isAll:false };
+  }
+
+  /* ── Derive chart data from AI text + product + country ── */
+  function buildChartData(text, productName, hsCode, country) {
+    const { pcts, bigs } = extractMetrics(text);
+    const years = ["2019","2020","2021","2022","2023","2024"];
+
+    // Base market size: extract from AI text or estimate from HS chapter
+    const hsChapter = (hsCode || "00").substring(0, 2);
+    const chapterBase = {
+      "07":280, "08":320, "09":180, "10":450, "15":240,
+      "17":190, "20":160, "52":350, "61":420, "62":380,
+      "72":500, "27":600
+    };
+    const baseSize = bigs.length ? bigs[0] : (chapterBase[hsChapter] || 200);
+
+    // Adjust by country weight
+    const cw = country.isAll ? 1.0 : (country.weight || 0.5);
+    const mktSize = +(baseSize * cw).toFixed(1);
+
+    // Growth rate from AI text or country default
+    const growthRate = pcts.length ? pcts[0] : (country.growth || 4.0);
+
+    // Top 5 EU markets for bar chart (filter selected country first if not ALL)
+    let topMarkets;
+    if (country.isAll) {
+      topMarkets = EU27.slice(0, 7);
+    } else {
+      topMarkets = [
+        EU27.find(c=>c.en===country.en) || EU27[0],
+        ...EU27.filter(c=>c.en!==country.en).slice(0,6)
+      ];
+    }
+
+    // Line data: imports trend scaled to selected country
+    const lineData = years.map((_,i) => +(mktSize * (0.72 + i * (growthRate/100))).toFixed(1));
+
+    // Bar data: each EU market
+    const barLabels = topMarkets.map(m => m.ar);
+    const barData   = topMarkets.map(m => +(baseSize * m.weight).toFixed(1));
+
+    // Donut: share of imports — top 5 + others
+    const top5 = EU27.slice(0,5);
+    const top5Share = top5.map(m => Math.round(m.weight * 28));
+    const othersShare = 100 - top5Share.reduce((a,b)=>a+b,0);
+
+    // Area: growth over years — imports + Egypt share
+    const egyptShare = pcts.length > 1 ? pcts[1] : +(mktSize * 0.035).toFixed(1);
+    const importGrowth = years.map((_,i) => +(mktSize * (0.72 + i * (growthRate/100))).toFixed(1));
+    const egyptGrowth  = years.map((_,i) => +(egyptShare * (0.6 + i * 0.12)).toFixed(2));
+
+    return { mktSize, growthRate, egyptShare, lineData, barLabels, barData,
+             top5, top5Share, othersShare, importGrowth, egyptGrowth, years };
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     DYNAMIC CHART RENDERER — updates on product + country change
+  ═══════════════════════════════════════════════════════════ */
+  function renderExportChart(text) {
+    const dash = qs("analyticsDashboard");
+    if (!dash) return;
+    dash.style.display = "block";
+
+    const productName = qs("statProduct") ? qs("statProduct").textContent : "المنتج";
+    const hsCode      = qs("hs")          ? qs("hs").value.trim()         : "";
+    const country     = getSelectedCountry();
+    const d           = buildChartData(text, productName, hsCode, country);
+
+    /* ── Update chart card titles dynamically ── */
+    const countryLabel = country.isAll ? "EU-27" : country.ar;
+    const titles = document.querySelectorAll(".chart-card-title");
+    const titleTexts = [
+      `📈 اتجاه الواردات — ${countryLabel} (M€)`,
+      `📊 مقارنة أسواق الـ EU — ${productName}`,
+      `🥧 توزيع حصص واردات EU`,
+      `📉 نمو الواردات + حصة مصر`
+    ];
+    titles.forEach((el, i) => { if (titleTexts[i]) el.textContent = titleTexts[i]; });
+
+    /* ── KPI Cards ── */
+    qs("kpiCards").innerHTML = [
+      { lbl:"حجم السوق",    val:`${d.mktSize}M€`,       chg:`${countryLabel}`, up:true },
+      { lbl:"نمو سنوي",     val:`${d.growthRate}%`,      chg:"CAGR 2019-2024",  up:true },
+      { lbl:"حصة مصر",      val:`${d.egyptShare}%`,      chg:"فرصة تصديرية",    up:true },
+      { lbl:"الكريدت",      val:qs("statRemaining").textContent||"—", chg:"متبقي", up:true }
+    ].map(k=>`<div class="kpi-card">
+      <div class="kpi-lbl">${k.lbl}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-chg ${k.up?'kpi-up':'kpi-down'}">${k.chg}</div>
+    </div>`).join("");
+
+    /* ── Line Chart — import trend ── */
+    killChart("chartLine");
+    chartInstances["chartLine"] = new Chart(qs("chartLine"), {
+      type:"line",
+      data:{
+        labels: d.years,
+        datasets:[{
+          label:`واردات ${countryLabel} من ${productName} (M€)`,
+          data: d.lineData,
+          borderColor:"#3b82f6", backgroundColor:"rgba(59,130,246,.12)",
+          borderWidth:2, pointRadius:4, pointHoverRadius:6, fill:true, tension:0.4
+        }]
+      },
+      options: baseOpts({ legend:{ display:false } })
+    });
+
+    /* ── Bar Chart — EU market comparison ── */
+    killChart("chartBar");
+    chartInstances["chartBar"] = new Chart(qs("chartBar"), {
+      type:"bar",
+      data:{
+        labels: d.barLabels,
+        datasets:[{
+          label:`${productName} — واردات (M€)`,
+          data: d.barData,
+          backgroundColor: C.colors.concat(C.colors),
+          borderRadius:6, borderWidth:0
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:"rgba(6,15,30,.95)",
+            callbacks:{
+              label: ctx => ` ${ctx.parsed.y} M€`
+            }
+          }
+        },
+        scales:{
+          x:{ticks:{color:C.tick, font:C.font, maxRotation:30}, grid:{color:C.grid}},
+          y:{ticks:{color:C.tick, font:C.font}, grid:{color:C.grid}}
+        }
+      }
+    });
+
+    /* ── Donut — EU import share ── */
+    killChart("chartPie");
+    const pieLabels = [...d.top5.map(m=>m.ar), "غيرها"];
+    const pieData   = [...d.top5Share, d.othersShare];
+    chartInstances["chartPie"] = new Chart(qs("chartPie"), {
+      type:"doughnut",
+      data:{
+        labels: pieLabels,
+        datasets:[{
+          data: pieData,
+          backgroundColor: C.colors,
+          borderColor:"#060f1e", borderWidth:2, hoverOffset:6
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false, cutout:"60%",
+        plugins:{
+          legend:{ position:"right", labels:{ color:C.text, font:C.font, padding:10, boxWidth:12 } },
+          tooltip:{
+            backgroundColor:"rgba(6,15,30,.95)", bodyFont:C.font, padding:10,
+            callbacks:{ label: ctx => ` ${ctx.parsed}% من واردات EU` }
+          }
+        }
+      }
+    });
+
+    /* ── Area Chart — growth + Egypt share ── */
+    killChart("chartArea");
+    chartInstances["chartArea"] = new Chart(qs("chartArea"), {
+      type:"line",
+      data:{
+        labels: d.years,
+        datasets:[
+          {
+            label:`واردات ${countryLabel} (M€)`,
+            data: d.importGrowth,
+            borderColor:"#10b981", backgroundColor:"rgba(16,185,129,.15)",
+            borderWidth:2, fill:true, tension:0.45, pointRadius:3,
+            yAxisID:"y"
+          },
+          {
+            label:`حصة مصر في ${countryLabel} (%)`,
+            data: d.egyptGrowth,
+            borderColor:"#f59e0b", backgroundColor:"rgba(245,158,11,.08)",
+            borderWidth:2, fill:true, tension:0.45, pointRadius:3,
+            yAxisID:"y1"
+          }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ labels:{ color:C.text, font:C.font, padding:10, boxWidth:12 } },
+          tooltip:{ backgroundColor:"rgba(6,15,30,.95)" }
+        },
+        scales:{
+          x:  { ticks:{color:C.tick, font:C.font}, grid:{color:C.grid} },
+          y:  { type:"linear", position:"left",  ticks:{color:"#10b981", font:C.font}, grid:{color:C.grid} },
+          y1: { type:"linear", position:"right", ticks:{color:"#f59e0b", font:C.font}, grid:{display:false} }
+        }
+      }
+    });
+  }
+
+  /* ── Re-render charts when country changes ── */
+  function onCountryChange() {
+    updateProductName();
+    const box = qs("aiBox");
+    if (box && box.textContent.length > 100) {
+      renderExportChart(box.textContent);
+    }
+    // Update badge
+    const country = getSelectedCountry();
+    const badge = qs("countryBadge");
+    if (badge) {
+      badge.textContent = country.isAll ? "🌍 27 دولة" : `${country.ar}`;
+    }
+  }
+
+  /* buyer chart — stub */
+  function renderBuyerChart() {}
+
+  /* ══════════════════════════════════════════════════════════
+     AUTOCOMPLETE + SUPABASE DB INTEGRATION
+  ══════════════════════════════════════════════════════════ */
+
+  let acResults       = [];   // نتائج البحث الحالية
+  let acIndex         = -1;   // العنصر المحدد بالـ keyboard
+  let acDebounce      = null; // debounce timer
+  let selectedProduct = null; // المنتج المختار من DB
+
+  /* ── بحث في Supabase بـ RPC ── */
+  async function searchProductsFromDB(query) {
+    if (!supabaseClient) return [];
+    if (query.length < 2) return [];
+
+    // بحث في products_hs أولاً
+    const { data: byName } = await supabaseClient
+      .from("products_hs")
+      .select("id, product_name, product_name_ar, product_category, hs6_code, hs4_code, hs2_code")
+      .or(`product_name.ilike.%${query}%,product_name_ar.ilike.%${query}%,hs6_code.ilike.${query}%,hs4_code.ilike.${query}%`)
+      .limit(8);
+
+    if (byName && byName.length > 0) return byName;
+
+    // fallback: بحث في hs_subheadings
+    const { data: bySub } = await supabaseClient
+      .from("hs_subheadings")
+      .select("subheading_code, description_en, description_ar, heading_code, chapter_code")
+      .or(`description_en.ilike.%${query}%,subheading_code.ilike.${query}%`)
+      .limit(8);
+
+    if (bySub && bySub.length > 0) {
+      return bySub.map(s => ({
+        product_name: s.description_en,
+        product_name_ar: s.description_ar || "",
+        product_category: "HS Subheading",
+        hs6_code: s.subheading_code,
+        hs4_code: s.heading_code,
+        hs2_code: s.chapter_code,
+        _fromSub: true
+      }));
+    }
+
+    return [];
+  }
+
+  /* ── Fetch HS full info by code ── */
+  async function fetchHsInfo(hs6) {
+    if (!supabaseClient || !hs6 || hs6.length < 4) return null;
+    const clean = hs6.replace(/\./g, "").replace(/\s/g, "");
+
+    const { data } = await supabaseClient
+      .from("hs_subheadings")
+      .select(`
+        subheading_code, description_en, description_ar, unit,
+        hs_headings ( heading_code, description_en ),
+        hs_chapters ( chapter_code, description_en, category )
+      `)
+      .eq("subheading_code", clean)
+      .maybeSingle();
+
+    return data || null;
+  }
+
+  /* ── Render dropdown ── */
+  function renderAcDropdown(items, query) {
+    const dd = qs("acDropdown");
+    if (!items || !items.length) {
+      dd.innerHTML = `<div class="ac-empty">لا توجد نتائج لـ "${query}" — يمكنك الكتابة يدوياً</div>`;
+      dd.style.display = "block";
+      return;
+    }
+    acResults = items;
+    dd.innerHTML = items.map((item, i) => `
+      <div class="ac-item" data-idx="${i}" onmousedown="selectAcItem(${i})">
+        <div class="ac-item-name">${item.product_name}</div>
+        <div class="ac-item-meta">
+          ${item.product_name_ar ? `<span style="margin-left:8px">${item.product_name_ar}</span>` : ""}
+          <span class="ac-item-hs">HS-6: ${item.hs6_code || "—"}</span>
+          ${item.product_category ? `<span style="margin-left:8px; color:#a5b4fc">${item.product_category}</span>` : ""}
+        </div>
+      </div>`).join("");
+    dd.style.display = "block";
+    acIndex = -1;
+  }
+
+  function closeAcDropdown() {
+    const dd = qs("acDropdown");
+    if (dd) dd.style.display = "none";
+    acIndex = -1;
+  }
+
+  /* ── Select item from dropdown ── */
+  function selectAcItem(idx) {
+    const item = acResults[idx];
+    if (!item) return;
+
+    selectedProduct = item;
+    qs("scanProduct").value = item.product_name;
+    qs("scanHsCode").value  = item.hs6_code || "";
+    closeAcDropdown();
+
+    // Show badge
+    const badge = qs("selectedProductBadge");
+    badge.style.display = "flex";
+    qs("selProdName").textContent = item.product_name + (item.product_name_ar ? ` (${item.product_name_ar})` : "");
+    qs("selProdHs6").textContent  = `HS-6: ${item.hs6_code || "—"}`;
+    qs("selProdCat").textContent  = item.product_category || "";
+
+    // Show HS info
+    if (item.hs6_code) showHsInfo(item);
+  }
+
+  function showHsInfo(item) {
+    const info = qs("hsInfo");
+    const badge = qs("hsBadge");
+    if (!info) return;
+    info.innerHTML = `
+      <span style="color:#fbbf24">HS-4: ${item.hs4_code || "—"}</span>
+      <span style="margin:0 6px;">·</span>
+      <span style="color:#93c5fd">HS-2: ${item.hs2_code || "—"}</span>
+      ${item.product_category ? `<span style="margin:0 6px;">·</span><span style="color:#6ee7b7">${item.product_category}</span>` : ""}
+    `;
+    if (badge) badge.textContent = "✓ من قاعدة البيانات";
+  }
+
+  /* ── Input handler with debounce ── */
+  async function onScanProductInput(val) {
+    selectedProduct = null;
+    qs("selectedProductBadge").style.display = "none";
+    qs("hsInfo").textContent = "";
+    qs("hsBadge").textContent = "";
+
+    clearTimeout(acDebounce);
+    if (!val || val.length < 2) { closeAcDropdown(); return; }
+
+    acDebounce = setTimeout(async () => {
+      const results = await searchProductsFromDB(val);
+      renderAcDropdown(results, val);
+    }, 280);
+  }
+
+  /* ── Keyboard navigation ── */
+  function onScanProductKey(e) {
+    const dd = qs("acDropdown");
+    const items = dd.querySelectorAll(".ac-item");
+    if (!items.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      acIndex = Math.min(acIndex + 1, items.length - 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      acIndex = Math.max(acIndex - 1, 0);
+    } else if (e.key === "Enter" && acIndex >= 0) {
+      e.preventDefault();
+      selectAcItem(acIndex);
+      return;
+    } else if (e.key === "Escape") {
+      closeAcDropdown(); return;
+    } else {
+      return;
+    }
+    items.forEach((el, i) => el.classList.toggle("active", i === acIndex));
+  }
+
+  /* ── HS Code manual input → auto-fetch info ── */
+  async function onHsCodeInput(val) {
+    const clean = val.replace(/\./g, "").trim();
+    if (clean.length === 6) {
+      qs("hsBadge").textContent = "جارٍ البحث...";
+      const data = await fetchHsInfo(clean);
+      if (data) {
+        const fakeItem = {
+          product_name: data.description_en,
+          product_name_ar: data.description_ar,
+          product_category: data.hs_chapters?.category || "",
+          hs6_code: data.subheading_code,
+          hs4_code: data.hs_headings?.heading_code,
+          hs2_code: data.hs_chapters?.chapter_code
+        };
+        showHsInfo(fakeItem);
+        qs("hsBadge").textContent = "✓ كود صحيح";
+        // إذا حقل المنتج فاضي، اكتب الوصف تلقائياً
+        if (!qs("scanProduct").value.trim()) {
+          qs("scanProduct").value = data.description_en;
+        }
+      } else {
+        qs("hsInfo").textContent = "⚠️ الكود غير موجود في قاعدة البيانات";
+        qs("hsBadge").textContent = "";
+      }
+    } else {
+      qs("hsInfo").textContent = "";
+      qs("hsBadge").textContent = "";
+    }
+  }
+
+  /* Close dropdown on outside click */
+  document.addEventListener("click", (e) => {
+    closeAcDropdown();
+  });
+
+  /* ─── INIT ─── */
+  loadSettings();
+  updateProductName();
+  checkExistingSession();
+  // Initial indicator state
+  setTimeout(() => {
+    const hasToken = !!localStorage.getItem("wx_access_token");
+    const hasEmail = !!localStorage.getItem("wx_user_email");
+    updateConnectionIndicators(false, hasToken && hasEmail);
+  }, 500);
+  </script>
+</body>
+</html>
