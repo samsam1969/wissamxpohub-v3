@@ -17,7 +17,8 @@ app.register_blueprint(buyers_blueprint)
 
 @app.get("/")
 def index():
-    return send_from_directory(".", "WissamXpoHub_V3_Frontend_FIXED.html")
+    base = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(base, "WissamXpoHub_V3_Frontend_FIXED.html")
 
 @app.get("/health")
 def health():
