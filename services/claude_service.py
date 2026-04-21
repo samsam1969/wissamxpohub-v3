@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 from typing import Optional
 from dotenv import load_dotenv
+from services.gemini_service import gemini_prepare_data, gemini_extract_market_info
 
 load_dotenv()
 
