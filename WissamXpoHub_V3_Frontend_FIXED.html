@@ -910,7 +910,7 @@
         <button type="button" onclick="setDashQ(this,'الشهادات والمتطلبات الصحية المطلوبة')" class="dash-q-btn" data-ar="📋 الشهادات" data-en="📋 Certificates" data-ar="📋 الشهادات" data-en="📋 Certificates" >📋 الشهادات</button>
         <button type="button" onclick="setDashQ(this,'استراتيجية التسعير والربحية')" class="dash-q-btn" data-ar="💰 التسعير" data-en="💰 Pricing" data-ar="💰 التسعير" data-en="💰 Pricing" >💰 التسعير</button>
         <button type="button" onclick="setDashQ(this,'استراتيجية دخول السوق وخطة التصدير')" class="dash-q-btn" data-ar="🚀 دخول السوق" data-en="🚀 Market Entry" data-ar="🚀 دخول السوق" data-en="🚀 Market Entry" >🚀 دخول السوق</button>
-        <button type="button" onclick="setDashQ(this,'اعطني تقرير شامل ومفصل عن فرص التصدير لهذا المنتج')" class="dash-q-btn">📊 تقرير شامل</button>
+        <button type="button" onclick="setDashQ(this, LANG==='ar' ? 'اعطني تقرير شامل ومفصل عن فرص التصدير لهذا المنتج' : 'Give me a comprehensive detailed report on export opportunities for this product')" class="dash-q-btn" data-ar="📊 تقرير شامل" data-en="📊 Full Report">📊 تقرير شامل</button>
       </div>
     </section>
 
@@ -924,14 +924,14 @@
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div>
-          <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:6px;">كود HS *</label>
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:6px;" data-ar="كود HS *" data-en="HS Code *">كود HS *</label>
           <input id="hs" placeholder="مثال: 081110" maxlength="10"
             style="width:100%;background:rgba(0,0,0,.3);border:1px solid var(--line);color:#fff;padding:11px 14px;border-radius:10px;font-size:14px;font-family:'Cairo',Arial,sans-serif;outline:none;transition:border-color .15s;"
             oninput="updateProductName()"/>
           <div class="product-box" id="productNameBox" style="margin-top:5px;font-size:12px;color:var(--warn);font-weight:700;min-height:18px;"></div>
         </div>
         <div>
-          <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:6px;">السوق المستهدف *</label>
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:6px;" data-ar="السوق المستهدف *" data-en="Target Market *">السوق المستهدف *</label>
           <select id="country" onchange="onCountryChange()"
             style="width:100%;background:rgba(0,0,0,.3);border:1px solid var(--line);color:#fff;padding:11px 14px;border-radius:10px;font-size:14px;font-family:'Cairo',Arial,sans-serif;outline:none;">
             <option value="__ALL__" data-ar="🌍 جميع دول الاتحاد الأوروبي" data-en="🌍 All EU Countries" data-ar="🌍 جميع دول الاتحاد الأوروبي" data-en="🌍 All EU Countries" >🌍 جميع دول الاتحاد الأوروبي</option>
@@ -972,7 +972,7 @@
         <div style="display:flex;align-items:flex-start;gap:10px;">
           <span style="font-size:14px;flex-shrink:0;">📚</span>
           <div>
-            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:5px;">المصادر المستخدمة</div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:5px;" data-ar="المصادر المستخدمة" data-en="Sources Used">المصادر المستخدمة</div>
             <div id="dashSources" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
           </div>
         </div>
