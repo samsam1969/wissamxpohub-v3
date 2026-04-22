@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="blogHtml">
 <head>
 <script>
 (function(){
@@ -120,29 +120,30 @@ a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
 
 <nav class="top-nav">
   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-    <button type="button" class="ghost" onclick="goBack()" style="padding:9px 16px;font-size:13px;border-radius:10px;">&#8592; العودة</button>
+    <button type="button" class="ghost" onclick="goBack()" style="padding:9px 16px;font-size:13px;border-radius:10px;" data-ar="&#8592; العودة" data-en="&#8592; Back">&#8592; العودة</button>
     <div class="nav-brand">WissamXpoHub <span>/ Blog</span></div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div id="authStatus" style="font-size:13px;color:var(--muted);font-weight:600;"></div>
-    <button type="button" class="primary" id="newPostBtn" onclick="openNewPost()" style="padding:9px 16px;font-size:13px;">+ منشور جديد</button>
+    <button type="button" class="primary" <div id="blogLangToggle" onclick="toggleBlogLang()" style="cursor:pointer;padding:6px 14px;border-radius:999px;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#a5b4fc;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">🌐 EN</div>
+      id="newPostBtn" onclick="openNewPost()" style="padding:9px 16px;font-size:13px;" data-ar="+ منشور جديد" data-en="+ New Post">+ منشور جديد</button>
   </div>
 </nav>
 
 <!-- FILTER BAR -->
 <div class="filter-bar">
-  <button type="button" class="filter-btn active" onclick="filterPosts('all',this)">الكل</button>
-  <button type="button" class="filter-btn" onclick="filterPosts('news',this)">&#128240; أخبار</button>
-  <button type="button" class="filter-btn" onclick="filterPosts('market',this)">&#128200; بيانات سوق</button>
-  <button type="button" class="filter-btn" onclick="filterPosts('opportunity',this)">&#127775; فرص تصدير</button>
-  <button type="button" class="filter-btn" onclick="filterPosts('rfq',this)">&#128203; طلبات شراء</button>
-  <button type="button" class="filter-btn" onclick="filterPosts('analysis',this)">&#128202; تحليلات</button>
+  <button type="button" class="filter-btn active" onclick="filterPosts('all',this)" data-ar="الكل" data-en="All">الكل</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('news',this)" data-ar="&#128240; أخبار" data-en="&#128240; News">&#128240; أخبار</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('market',this)" data-ar="&#128200; بيانات سوق" data-en="&#128200; Market Data">&#128200; بيانات سوق</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('opportunity',this)" data-ar="&#127775; فرص تصدير" data-en="&#127775; Export Opportunities">&#127775; فرص تصدير</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('rfq',this)" data-ar="&#128203; طلبات شراء" data-en="&#128203; RFQ">&#128203; طلبات شراء</button>
+  <button type="button" class="filter-btn" onclick="filterPosts('analysis',this)" data-ar="&#128202; تحليلات" data-en="&#128202; Analysis">&#128202; تحليلات</button>
 </div>
 
 <!-- LOADER -->
 <div class="loader-wrap" id="mainLoader">
   <div class="spinner"></div>
-  <div style="color:var(--muted);font-size:14px;font-weight:700;">جارٍ تحميل المنشورات...</div>
+  <div style="color:var(--muted);font-size:14px;font-weight:700;" data-ar="جارٍ تحميل المنشورات..." data-en="Loading posts...">جارٍ تحميل المنشورات...</div>
 </div>
 
 <!-- POSTS GRID -->
@@ -151,7 +152,7 @@ a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
 <!-- EMPTY STATE -->
 <div class="empty-state" id="emptyState" style="display:none;">
   <div class="icon">&#128240;</div>
-  <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">لا توجد منشورات بعد</div>
+  <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;" data-ar="لا توجد منشورات بعد" data-en="No posts yet">لا توجد منشورات بعد</div>
   <div style="font-size:14px;">اضغط "+ منشور جديد" لإضافة أول منشور</div>
 </div>
 
@@ -161,37 +162,37 @@ a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
 <div class="modal-overlay" id="postModal">
   <div class="modal-box">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div class="modal-title" id="modalTitle">منشور جديد</div>
+      <div class="modal-title" id="modalTitle" data-ar="منشور جديد" data-en="New Post">منشور جديد</div>
       <button type="button" class="ghost" onclick="closePostModal()" style="padding:6px 12px;font-size:13px;">&#10005;</button>
     </div>
 
     <div class="loader-wrap" id="saveLoader">
       <div class="spinner"></div>
-      <div style="color:var(--muted);font-size:13px;font-weight:700;">جارٍ الحفظ...</div>
+      <div style="color:var(--muted);font-size:13px;font-weight:700;" data-ar="جارٍ الحفظ..." data-en="Saving...">جارٍ الحفظ...</div>
     </div>
 
     <input type="hidden" id="editPostId"/>
 
-    <label for="postTitle">العنوان *</label>
+    <label for="postTitle" data-ar="العنوان *" data-en="Title *">العنوان *</label>
     <input id="postTitle" placeholder="عنوان المنشور..."/>
 
-    <label for="postCategory">التصنيف</label>
+    <label for="postCategory" data-ar="التصنيف" data-en="Category">التصنيف</label>
     <select id="postCategory">
-      <option value="news">&#128240; أخبار</option>
-      <option value="market">&#128200; بيانات سوق</option>
+      <option value="news" data-ar="&#128240; أخبار" data-en="&#128240; News">&#128240; أخبار</option>
+      <option value="market" data-ar="&#128200; بيانات سوق" data-en="&#128200; Market Data">&#128200; بيانات سوق</option>
       <option value="opportunity">&#127775; فرصة تصدير</option>
       <option value="rfq">&#128203; طلب شراء (RFQ)</option>
       <option value="analysis">&#128202; تحليل</option>
     </select>
 
-    <label for="postContent">المحتوى</label>
+    <label for="postContent" data-ar="المحتوى" data-en="Content">المحتوى</label>
     <textarea id="postContent" placeholder="اكتب محتوى المنشور..." style="min-height:150px;"></textarea>
 
-    <label for="postTags">الوسوم (مفصولة بفواصل)</label>
+    <label for="postTags" data-ar="الوسوم (مفصولة بفواصل)" data-en="Tags (comma-separated)">الوسوم (مفصولة بفواصل)</label>
     <input id="postTags" placeholder="مثال: توت، مصر، ألمانيا، تصدير"/>
 
     <!-- Image Upload -->
-    <label>صورة الغلاف</label>
+    <label data-ar="صورة الغلاف" data-en="Cover Image">صورة الغلاف</label>
     <div class="upload-zone" id="imgZone" onclick="document.getElementById('imgInput').click()" ondragover="dragOver(event,'imgZone')" ondragleave="dragLeave('imgZone')" ondrop="dropFile(event,'img')">
       <input type="file" id="imgInput" accept="image/*" onchange="handleImageFile(this.files[0])"/>
       <div id="imgPreview">
@@ -201,7 +202,7 @@ a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
     </div>
 
     <!-- Files Upload -->
-    <label>ملفات مرفقة</label>
+    <label data-ar="ملفات مرفقة" data-en="Attachments">ملفات مرفقة</label>
     <div class="upload-zone" id="fileZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event,'fileZone')" ondragleave="dragLeave('fileZone')" ondrop="dropFile(event,'file')">
       <input type="file" id="fileInput" multiple accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.pptx,.txt" onchange="handleFiles(this.files)"/>
       <div style="font-size:28px;margin-bottom:6px;">&#128196;</div>
@@ -212,8 +213,8 @@ a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
     <div id="formError" style="margin-top:10px;font-size:13px;color:var(--bad);font-weight:700;min-height:18px;"></div>
 
     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-      <button type="button" class="primary" id="saveBtn" onclick="savePost()" style="flex:1;">حفظ المنشور</button>
-      <button type="button" class="ghost" onclick="closePostModal()">إلغاء</button>
+      <button type="button" class="primary" id="saveBtn" onclick="savePost()" style="flex:1;" data-ar="حفظ المنشور" data-en="Save Post">حفظ المنشور</button>
+      <button type="button" class="ghost" onclick="closePostModal()" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
     </div>
   </div>
 </div>
@@ -228,8 +229,8 @@ a{color:#7eb3ff;text-decoration:none;}a:hover{text-decoration:underline;}
         <div id="viewMeta" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button type="button" class="secondary" id="editBtn" onclick="editPost()" style="padding:7px 14px;font-size:13px;">&#9998; تعديل</button>
-        <button type="button" class="danger" id="deleteBtn" onclick="deletePost()" style="padding:7px 14px;font-size:13px;">&#128465; حذف</button>
+        <button type="button" class="secondary" id="editBtn" onclick="editPost()" style="padding:7px 14px;font-size:13px;" data-ar="&#9998; تعديل" data-en="&#9998; Edit">&#9998; تعديل</button>
+        <button type="button" class="danger" id="deleteBtn" onclick="deletePost()" style="padding:7px 14px;font-size:13px;" data-ar="&#128465; حذف" data-en="&#128465; Delete">&#128465; حذف</button>
         <button type="button" class="ghost" onclick="closeViewModal()" style="padding:7px 14px;font-size:13px;">&#10005;</button>
       </div>
     </div>
@@ -472,5 +473,37 @@ async function init(){
 }
 init();
 </script>
+
+<script>
+// === BLOG LANGUAGE SYSTEM ===
+var BLOG_LANG = localStorage.getItem("wx_lang") || "ar";
+
+function applyBlogLanguage(lang) {
+    BLOG_LANG = lang;
+    localStorage.setItem("wx_lang", lang);
+    var isAr = lang === "ar";
+    var html = document.getElementById("blogHtml");
+    if (html) {
+        html.setAttribute("dir", isAr ? "rtl" : "ltr");
+        html.setAttribute("lang", lang);
+    }
+    var toggle = document.getElementById("blogLangToggle");
+    if (toggle) toggle.textContent = isAr ? "🌐 EN" : "🌐 عربي";
+    document.querySelectorAll("[data-ar][data-en]").forEach(function(el) {
+        if (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA" && el.tagName !== "SELECT") {
+            el.textContent = isAr ? el.getAttribute("data-ar") : el.getAttribute("data-en");
+        }
+    });
+}
+
+function toggleBlogLang() {
+    applyBlogLanguage(BLOG_LANG === "ar" ? "en" : "ar");
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    applyBlogLanguage(BLOG_LANG);
+});
+</script>
+
 </body>
 </html>
