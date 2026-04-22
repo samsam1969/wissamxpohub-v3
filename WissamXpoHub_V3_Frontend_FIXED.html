@@ -732,7 +732,7 @@
             <div style="font-size:12px;color:var(--muted);" data-ar="• أدخل كود HS الصحيح للحصول على بيانات دقيقة — مثال: 080410 للتمور" data-en="• Enter the correct HS Code for accurate data — e.g. 080410 for dates" data-ar="• أدخل كود HS الصحيح للحصول على بيانات دقيقة — مثال: 080410 للتمور" data-en="• Enter the correct HS Code for accurate data — e.g. 080410 for dates" >• أدخل كود HS الصحيح للحصول على بيانات دقيقة — مثال: 080410 للتمور</div>
             <div style="font-size:12px;color:var(--muted);" data-ar="• التقارير مساعِدة في اتخاذ القرار وليست بديلاً عن البحث الميداني" data-en="• Reports assist decision-making and are not a substitute for field research" data-ar="• التقارير مساعِدة في اتخاذ القرار وليست بديلاً عن البحث الميداني" data-en="• Reports assist decision-making and are not a substitute for field research" >• التقارير مساعِدة في اتخاذ القرار وليست بديلاً عن البحث الميداني</div>
             <div style="font-size:12px;color:var(--muted);" data-ar="• بيانات 2020-2024 من مصادر رسمية — 2025 من Tavily Web Intelligence" data-en="• 2020-2024 data from official sources — 2025 from Tavily Web Intelligence" data-ar="• بيانات 2020-2024 من مصادر رسمية — 2025 من Tavily Web Intelligence" data-en="• 2020-2024 data from official sources — 2025 from Tavily Web Intelligence" >• بيانات 2020-2024 من مصادر رسمية — 2025 من Tavily Web Intelligence</div>
-            <div style="font-size:12px;color:var(--muted);">• للدعم والاستفسار: <a href="https://wa.me/201116415272" target="_blank" style="color:#25d366;">واتساب 201116415272+</a></div>
+            <div style="font-size:12px;color:var(--muted);" data-ar="• للدعم والاستفسار:" data-en="• Support & Inquiries:">• للدعم والاستفسار: <a href="https://wa.me/201116415272" target="_blank" style="color:#25d366;">واتساب 201116415272+</a></div>
           </div>
         </div>
       </div>
@@ -965,7 +965,7 @@
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
           <span style="font-size:14px;flex-shrink:0;">🎯</span>
           <div>
-            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:5px;">سيتم تحليل طلبك باستخدام</div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;margin-bottom:5px;" data-ar="سيتم تحليل طلبك باستخدام" data-en="Your request will be analyzed using">سيتم تحليل طلبك باستخدام</div>
             <div id="dashModules" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
           </div>
         </div>
@@ -996,9 +996,9 @@
           <h3 id="reportSubtitle" style="color:var(--muted);font-size:13px;"></h3>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-          <button type="button" class="secondary" onclick="copyBoxText('aiBox')" style="padding:8px 14px;font-size:13px;border-radius:10px;">📋 نسخ</button>
+          <button type="button" class="secondary" onclick="copyBoxText('aiBox')" style="padding:8px 14px;font-size:13px;border-radius:10px;" data-ar="📋 نسخ" data-en="📋 Copy">📋 نسخ</button>
           <button type="button" class="success" onclick="exportBoxToPdf('AI Export Advisor','aiBox')" style="padding:8px 14px;font-size:13px;border-radius:10px;">📄 PDF</button>
-          <button type="button" id="showSourcesBtn" onclick="toggleSourcesPanel()" style="padding:8px 14px;font-size:13px;border-radius:10px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.4);color:#a5b4fc;font-weight:700;font-family:'Cairo',Arial,sans-serif;cursor:pointer;">🔍 مصادر البيانات</button>
+          <button type="button" id="showSourcesBtn" data-ar="🔍 مصادر البيانات" data-en="🔍 Data Sources" onclick="toggleSourcesPanel()" style="padding:8px 14px;font-size:13px;border-radius:10px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.4);color:#a5b4fc;font-weight:700;font-family:'Cairo',Arial,sans-serif;cursor:pointer;">🔍 مصادر البيانات</button>
         </div>
         <div class="loader-wrap" id="aiLoader">
           <div class="spinner"></div>
@@ -1168,7 +1168,7 @@
     const product = hsProductMap[hs] || (hs.length >= 4 ? `Product (${hs})` : "—");
     const country = cntryEl ? cntryEl.value || "—" : "—";
 
-    if (qs("productNameBox")) if(qs("productNameBox"))qs("productNameBox").textContent = `اسم المنتج: ${product}`;
+    if (qs("productNameBox")) if(qs("productNameBox"))qs("productNameBox").textContent = (typeof LANG !== "undefined" && LANG === "en" ? `Product: ${product}` : `اسم المنتج: ${product}`);
     if (qs("statProduct"))    if(qs("statProduct"))qs("statProduct").textContent    = product;
     if (qs("statHs"))         if(qs("statHs"))qs("statHs").textContent         = hs || "—";
     if (qs("statMarket"))     if(qs("statMarket"))qs("statMarket").textContent     = country;
@@ -2159,7 +2159,7 @@ ${htmlContent}
     const sbSt   = qs("sbStatus");
     if (user) {
       if (dot)   dot.className      = "user-dot ok";
-      if (email) email.textContent  = user.email || "مسجّل الدخول";
+      if (email) email.textContent  = user.email || (typeof LANG !== "undefined" && LANG === "en" ? "Logged in" : "مسجّل الدخول");
       if (sbSt)  { sbSt.textContent = "✓ مسجّل الدخول — " + (user.email || ""); sbSt.style.color = "#10b981"; }
     } else {
       if (dot)   dot.className      = "user-dot bad";
