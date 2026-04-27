@@ -3649,7 +3649,20 @@ window.radarStopScan=function(){
 };
 
 // Animation loop
-function rLoop(){rDraw();requestAnimationFrame(rLoop);}
+function rLoop(){
+  if(rScanning){
+    rSweep+=0.03;
+    Object.values(RMKT).forEach(function(m){
+      if(m.x===RCX&&m.y===RCY)return;
+      var a=Math.atan2(m.y-RCY,m.x-RCX);
+      var d=((rSweep-a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+      if(d<0.05) rBlips.push({x:m.x,y:m.y,born:Date.now()});
+    });
+    if(rRouteActive&&rRouteProgress<1) rRouteProgress+=0.004;
+  }
+  rDraw();
+  requestAnimationFrame(rLoop);
+}
 rLoop();
 
 // Inject blink keyframe
