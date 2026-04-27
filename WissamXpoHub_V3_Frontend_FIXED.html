@@ -3452,6 +3452,9 @@ ${htmlContent}
   // Apply on load
   document.addEventListener("DOMContentLoaded", function() {
     setTimeout(function() { applyLanguage(LANG); }, 500);
+    // Lock run button on page load
+    const rb = document.getElementById("runBtn");
+    if (rb) { rb.disabled = true; rb.style.opacity="0.4"; rb.style.cursor="not-allowed"; rb.style.background="rgba(100,100,120,0.4)"; }
     // Check admin immediately
     setTimeout(function() {
       try {
