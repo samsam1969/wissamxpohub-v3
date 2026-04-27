@@ -2278,8 +2278,14 @@ ${htmlContent}
     const savedToken = localStorage.getItem("wx_access_token");
     const savedEmail = localStorage.getItem("wx_user_email");
 
+    // IMMEDIATE display fix — show email right away without waiting for Supabase
     if (savedToken && savedEmail) {
       updateUserBar({ email: savedEmail });
+      // Also fix userEmail span directly
+      const emailEl = qs("userEmail");
+      if (emailEl) emailEl.textContent = savedEmail;
+      const dot = qs("userDot");
+      if (dot) dot.className = "user-dot ok";
       if (qs("accessToken")) qs("accessToken").value = savedToken;
       if (sbSt) { sbSt.textContent = "✓ مسجّل الدخول — " + savedEmail; sbSt.style.color = "#10b981"; }
       const plan = localStorage.getItem("wx_user_plan") || "pro";
