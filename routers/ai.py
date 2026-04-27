@@ -39,6 +39,16 @@ def export_advisor():
     user_id = token_payload.get("sub", "")
     email = token_payload.get("email", "")
     body = request.get_json()
+    hs_code_check = (body or {}).get("hs_code", "").strip()
+
+    # ═══ Security: Validate HS Code ═══
+    if not hs_code_check:
+        return jsonify({"error": "HS Code is required"}), 400
+    if hs_code_check not in REGISTERED_HS_CODES:
+        return jsonify({
+            "error": f"HS Code '{hs_code_check}' is not registered.",
+            "message": "Only registered Egyptian export products are supported.",
+        }), 422
     run(credits_service.ensure_user_profile(user_id, email))
     try:
         remaining = run(credits_service.deduct_credit(user_id))
