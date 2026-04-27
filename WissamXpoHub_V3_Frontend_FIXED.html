@@ -988,7 +988,95 @@
       </div>
     </section>
 
-    <!-- AI OUTPUT -->
+    
+<!-- ═══════ EU RADAR INTELLIGENCE WIDGET ═══════ -->
+<section class="card" style="margin-top:14px;padding:0;overflow:hidden;background:rgba(2,14,6,0.97);border:1px solid rgba(0,255,65,0.25);" id="radarSection">
+  <div style="display:flex;gap:0;flex-wrap:wrap;">
+
+    <!-- Radar Canvas -->
+    <div style="display:flex;flex-direction:column;align-items:center;padding:14px;gap:8px;flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(0,20,8,.95);border:1px solid rgba(0,255,65,.4);border-radius:3px;width:260px;box-shadow:0 0 8px rgba(0,255,65,.15);">
+        <span style="color:rgba(0,255,65,.5);font-size:11px;font-family:monospace;">⌕</span>
+        <span id="radarSearchLabel" style="color:#00ff41;font-family:'Courier New',monospace;font-size:10px;letter-spacing:.5px;flex:1;">HS CODE → TARGET PORT</span>
+      </div>
+      <div style="position:relative;width:260px;height:260px;">
+        <canvas id="radarCV" width="260" height="260" style="position:absolute;inset:0;border-radius:50%;"></canvas>
+        <div style="position:absolute;inset:0;border-radius:50%;border:2px solid #00cc33;box-shadow:0 0 14px #00ff41,0 0 35px rgba(0,255,65,.3),inset 0 0 50px rgba(0,0,0,.5);pointer-events:none;z-index:8;"></div>
+        <div style="position:absolute;top:50%;left:6px;right:6px;height:1px;background:rgba(0,255,65,.12);transform:translateY(-50%);pointer-events:none;"></div>
+        <div style="position:absolute;left:50%;top:6px;bottom:6px;width:1px;background:rgba(0,255,65,.12);transform:translateX(-50%);pointer-events:none;"></div>
+        <span style="position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;color:rgba(0,255,65,.6);font-family:monospace;letter-spacing:1px;">N</span>
+        <span style="position:absolute;bottom:3px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;color:rgba(0,255,65,.6);font-family:monospace;letter-spacing:1px;">S</span>
+        <span style="position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;color:rgba(0,255,65,.6);font-family:monospace;">E</span>
+        <span style="position:absolute;left:2px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;color:rgba(0,255,65,.6);font-family:monospace;">W</span>
+      </div>
+      <div style="width:260px;height:2px;background:rgba(0,255,65,.1);overflow:hidden;opacity:0;transition:opacity .3s;" id="radarPbar">
+        <div id="radarPfill" style="height:100%;background:#00ff41;width:0%;transition:width .5s;box-shadow:0 0 4px #00ff41;"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(0,12,4,.95);border:1px solid rgba(0,255,65,.2);border-radius:3px;font-size:10px;color:#00ff41;width:260px;justify-content:space-between;font-family:monospace;letter-spacing:.5px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div id="radarDot" style="width:7px;height:7px;border-radius:50%;background:#0a2010;flex-shrink:0;"></div>
+          <span id="radarStatus">RADAR STANDBY</span>
+        </div>
+        <span style="font-size:8px;color:rgba(0,255,65,.3);">WXH-V3</span>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div style="display:flex;flex-direction:column;gap:7px;padding:14px 14px 14px 0;flex:1;min-width:140px;justify-content:center;">
+
+      <div style="background:rgba(0,18,6,.95);border:1px solid rgba(0,255,65,.25);border-radius:3px;padding:8px 10px;box-shadow:0 0 6px rgba(0,255,65,.08);">
+        <div style="font-size:8px;color:rgba(0,255,65,.45);letter-spacing:1px;margin-bottom:2px;font-family:monospace;">EU IMPORTS</div>
+        <div id="rStatSub" style="font-size:9px;color:rgba(0,255,65,.65);margin-bottom:5px;font-family:monospace;">SELECT MARKET</div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:24px;" id="rBars0">
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(0,255,65,.2);height:40%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(0,255,65,.2);height:52%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(0,255,65,.2);height:60%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(0,255,65,.2);height:70%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(0,255,65,.2);height:80%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(0,255,65,.2);height:90%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:#00ff41;box-shadow:0 0 4px #00ff41;height:100%;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:3px;">
+          <span style="font-size:8px;color:rgba(0,255,65,.35);font-family:monospace;">2024</span>
+          <span id="rImpVal" style="font-size:9px;color:#00ff41;font-family:monospace;text-shadow:0 0 6px #00ff41;">—</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(0,18,6,.95);border:1px solid rgba(0,255,65,.25);border-radius:3px;padding:8px 10px;">
+        <div style="font-size:8px;color:rgba(0,255,65,.45);letter-spacing:1px;font-family:monospace;">DISTANCE · PORT SAID</div>
+        <div id="rDistVal" style="font-size:20px;font-weight:700;color:#facc15;text-shadow:0 0 10px #facc15;font-family:monospace;line-height:1.1;">—</div>
+        <div style="display:flex;justify-content:space-between;margin-top:3px;">
+          <span id="rPortName" style="font-size:8px;color:rgba(250,204,21,.5);font-family:monospace;">—</span>
+          <span id="rEta" style="font-size:9px;color:#facc15;font-family:monospace;text-shadow:0 0 5px #facc15;">—</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(0,18,6,.95);border:1px solid rgba(0,255,65,.25);border-radius:3px;padding:8px 10px;">
+        <div style="font-size:8px;color:rgba(0,255,65,.45);letter-spacing:1px;font-family:monospace;">CUSTOMS DUTY</div>
+        <div id="rDutyVal" style="font-size:20px;font-weight:700;color:#00ff41;text-shadow:0 0 10px #00ff41;font-family:monospace;">—</div>
+        <div style="margin-top:3px;">
+          <span id="rDutyNote" style="font-size:8px;color:rgba(0,255,65,.4);font-family:monospace;">—</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(0,18,6,.95);border:1px solid rgba(0,255,65,.25);border-radius:3px;padding:8px 10px;">
+        <div style="font-size:8px;color:rgba(0,255,65,.45);letter-spacing:1px;font-family:monospace;">CAGR (5YR)</div>
+        <div id="rCagrVal" style="font-size:20px;font-weight:700;color:#facc15;text-shadow:0 0 10px #facc15;font-family:monospace;">—</div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:18px;margin-top:4px;" id="rBars1">
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(250,204,21,.15);height:30%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(250,204,21,.15);height:45%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(250,204,21,.25);height:60%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:rgba(250,204,21,.35);height:75%;"></div>
+          <div style="width:9px;border-radius:1px 1px 0 0;background:#facc15;box-shadow:0 0 4px #facc15;height:100%;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- ═══════ END RADAR ═══════ -->
+
+<!-- AI OUTPUT -->
     <section class="dashboard-stack">
       <div class="card">
         <div class="card-header">
@@ -1534,6 +1622,10 @@
     if(qs("aiBox"))qs("aiBox").textContent = "جارٍ تشغيل AI Export Advisor...";
     setButtonLoading("runBtn", true, "Running...");
     showLoader("aiLoader", true);
+    // Radar: start scan
+    var _radarHs = (document.getElementById('hs')||{}).value||'';
+    var _radarCountry = (document.getElementById('country')||{}).value||'__ALL__';
+    if(typeof radarStartScan==='function') radarStartScan(_radarHs, _radarCountry);
 
     try {
       const token = await getFreshToken();
@@ -1574,6 +1666,7 @@
     } finally {
       setButtonLoading("runBtn", false);
       showLoader("aiLoader", false);
+      if(typeof radarStopScan==='function') radarStopScan();
     }
   }
 
@@ -1758,6 +1851,316 @@
     <tbody>${rows}</tbody>
   </table>
   <script>window.onload=()=>{window.print();}<\/script>
+
+
+<script>
+// ═══════════ WXH RADAR ENGINE ═══════════
+(function(){
+var rcv=document.getElementById('radarCV');
+if(!rcv)return;
+var rctx=rcv.getContext('2d');
+var RW=260,RH=260,RCX=130,RCY=130,RR=125;
+var EGYPT={x:RCX,y:RH-22};
+
+var RMKT={
+  'Germany':    {x:140,y:90, name:'HAMBURG',    dist:'3,760nm',km:'6,967km',eta:'7 days', imp:'$2.4B',cagr:'+7.2%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'France':     {x:108,y:105,name:'MARSEILLE',  dist:'2,980nm',km:'5,520km',eta:'5 days', imp:'$1.8B',cagr:'+5.8%',duty:'0%',dutyNote:'GAFTA/EUR.1'},
+  'Netherlands':{x:114,y:77, name:'ROTTERDAM',  dist:'4,100nm',km:'7,593km',eta:'8 days', imp:'$3.1B',cagr:'+9.1%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Italy':      {x:130,y:126,name:'GENOA',       dist:'1,840nm',km:'3,408km',eta:'4 days', imp:'$1.2B',cagr:'+4.3%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Spain':      {x:82, y:116,name:'VALENCIA',   dist:'2,200nm',km:'4,074km',eta:'5 days', imp:'$1.5B',cagr:'+6.5%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Poland':     {x:152,y:80, name:'GDANSK',     dist:'4,650nm',km:'8,612km',eta:'9 days', imp:'$0.8B',cagr:'+11.2%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Sweden':     {x:136,y:58, name:'GOTHENBURG', dist:'5,200nm',km:'9,630km',eta:'10 days',imp:'$0.6B',cagr:'+8.4%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Greece':     {x:152,y:134,name:'PIRAEUS',    dist:'980nm', km:'1,815km',eta:'2 days', imp:'$0.4B',cagr:'+3.1%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Belgium':    {x:110,y:80, name:'ANTWERP',    dist:'4,200nm',km:'7,778km',eta:'8 days', imp:'$1.1B',cagr:'+6.1%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  'Austria':    {x:130,y:94, name:'VIENNA',     dist:'3,400nm',km:'6,297km',eta:'7 days', imp:'$0.5B',cagr:'+4.8%',duty:'0%',dutyNote:'EUR.1 Cert'},
+  '__ALL__':    {x:RCX,y:RCY,name:'ALL EU',     dist:'—',      km:'—',      eta:'—',      imp:'$18B', cagr:'+7.1%',duty:'0%',dutyNote:'EUR.1 Cert'},
+};
+
+var RCOUNTRIES=[
+  {id:'FR',p:'M92 92 L107 87 L117 90 L124 99 L121 109 L113 115 L101 113 L92 104 Z',gx:108,gy:101},
+  {id:'DE',p:'M114 76 L127 74 L137 80 L140 91 L130 97 L118 99 L112 92 L109 83 Z',gx:124,gy:87},
+  {id:'ES',p:'M68 101 L90 98 L99 105 L97 117 L85 122 L67 118 L62 109 Z',gx:82,gy:110},
+  {id:'IT',p:'M120 103 L131 100 L139 108 L137 121 L130 130 L122 134 L118 124 L116 113 Z',gx:127,gy:115},
+  {id:'PL',p:'M136 66 L152 64 L160 71 L158 82 L145 86 L134 81 L131 72 Z',gx:146,gy:76},
+  {id:'NL',p:'M107 69 L118 67 L122 73 L116 78 L104 76 Z',gx:113,gy:73},
+  {id:'BE',p:'M103 76 L113 74 L117 80 L110 85 L100 82 Z',gx:109,gy:79},
+  {id:'PT',p:'M62 100 L72 97 L75 106 L72 115 L62 112 Z',gx:68,gy:106},
+  {id:'AT',p:'M129 76 L141 74 L145 80 L137 85 L127 83 Z',gx:136,gy:79},
+  {id:'SE',p:'M130 47 L141 40 L147 49 L144 61 L133 65 L124 58 L122 50 Z',gx:134,gy:53},
+  {id:'FI',p:'M145 37 L155 33 L160 43 L155 54 L145 57 L138 48 Z',gx:149,gy:45},
+  {id:'DK',p:'M116 59 L124 56 L128 62 L124 67 L116 65 Z',gx:122,gy:62},
+  {id:'RO',p:'M152 82 L167 80 L171 91 L167 101 L153 99 L146 90 Z',gx:158,gy:91},
+  {id:'GR',p:'M144 116 L154 111 L160 117 L158 128 L149 132 L140 125 Z',gx:150,gy:121},
+  {id:'HU',p:'M140 89 L153 87 L157 94 L151 100 L140 98 L135 93 Z',gx:146,gy:93},
+  {id:'CZ',p:'M129 72 L142 70 L146 76 L140 82 L128 79 Z',gx:137,gy:76},
+  {id:'HR',p:'M132 98 L141 96 L145 103 L138 108 L129 105 Z',gx:137,gy:101},
+  {id:'IE',p:'M76 70 L85 67 L88 74 L85 81 L76 79 Z',gx:82,gy:74},
+  {id:'BG',p:'M155 100 L167 97 L171 106 L164 112 L152 109 Z',gx:161,gy:105},
+  {id:'LT',p:'M144 60 L152 58 L156 64 L150 70 L141 67 Z',gx:148,gy:64},
+  {id:'LV',p:'M147 53 L155 50 L158 57 L152 62 L144 59 Z',gx:151,gy:56},
+  {id:'EE',p:'M149 45 L157 42 L160 49 L154 54 L147 51 Z',gx:154,gy:48},
+  {id:'SK',p:'M143 82 L153 79 L157 86 L151 91 L142 88 Z',gx:150,gy:85},
+];
+
+var rSweep=0,rScanning=false,rSelected=null,rBlips=[],rRouteProgress=0,rRouteActive=false;
+
+function rDraw(){
+  rctx.clearRect(0,0,RW,RH);
+  rctx.save();
+  rctx.beginPath();rctx.arc(RCX,RCY,RR,0,Math.PI*2);rctx.clip();
+
+  var bg=rctx.createRadialGradient(RCX,RCY,0,RCX,RCY,RR);
+  bg.addColorStop(0,'#072b10');bg.addColorStop(0.6,'#041a08');bg.addColorStop(1,'#020e04');
+  rctx.fillStyle=bg;rctx.fillRect(0,0,RW,RH);
+
+  // Degree ticks
+  for(var deg=0;deg<360;deg+=10){
+    var rad=deg*Math.PI/180-Math.PI/2;
+    var major=deg%30===0;
+    var r1=RR-2,r2=RR-(major?9:5);
+    rctx.beginPath();
+    rctx.moveTo(RCX+r1*Math.cos(rad),RCY+r1*Math.sin(rad));
+    rctx.lineTo(RCX+r2*Math.cos(rad),RCY+r2*Math.sin(rad));
+    rctx.strokeStyle='rgba(0,255,65,'+(major?0.45:0.2)+')';
+    rctx.lineWidth=major?1:0.5;rctx.stroke();
+    if(major){
+      var tr=RR-17;
+      rctx.font=(deg%90===0?'bold ':'')+'6px Courier New';
+      rctx.fillStyle='rgba(0,255,65,'+(deg%90===0?0.65:0.35)+')';
+      rctx.textAlign='center';rctx.textBaseline='middle';
+      rctx.fillText(deg,RCX+tr*Math.cos(rad),RCY+tr*Math.sin(rad));
+    }
+  }
+  rctx.textBaseline='alphabetic';
+
+  // Range rings
+  for(var i=1;i<=4;i++){
+    rctx.beginPath();rctx.arc(RCX,RCY,RR*i/5,0,Math.PI*2);
+    rctx.strokeStyle='rgba(0,255,65,'+(0.05+i*0.022)+')';rctx.lineWidth=0.6;rctx.stroke();
+  }
+
+  // Countries
+  RCOUNTRIES.forEach(function(c){
+    var p2=new Path2D(c.p);
+    var isSel=rSelected===c.id;
+    var inSw=rScanning&&rIsInSweep(c.id);
+    if(isSel){
+      rctx.save();rctx.shadowColor='#00ff41';rctx.shadowBlur=14;
+      rctx.fillStyle='rgba(0,255,65,0.30)';rctx.fill(p2);
+      rctx.strokeStyle='#00ff41';rctx.lineWidth=1.8;rctx.stroke(p2);rctx.restore();
+      rctx.font='bold 8px Courier New';rctx.fillStyle='rgba(0,255,65,.95)';
+      rctx.textAlign='center';rctx.shadowColor='#00ff41';rctx.shadowBlur=5;
+      rctx.fillText(c.id,c.gx,c.gy);rctx.shadowBlur=0;
+    } else if(inSw){
+      rctx.save();rctx.shadowColor='rgba(0,255,65,.3)';rctx.shadowBlur=6;
+      rctx.fillStyle='rgba(0,255,65,0.18)';rctx.fill(p2);
+      rctx.strokeStyle='rgba(0,255,65,0.65)';rctx.lineWidth=1.1;rctx.stroke(p2);rctx.restore();
+      rctx.font='7px Courier New';rctx.fillStyle='rgba(0,255,65,.75)';
+      rctx.textAlign='center';rctx.fillText(c.id,c.gx,c.gy);
+    } else {
+      rctx.fillStyle='rgba(0,160,50,0.30)';rctx.strokeStyle='rgba(0,220,60,0.40)';
+      rctx.lineWidth=0.8;rctx.fill(p2);rctx.stroke(p2);
+      rctx.font='7px Courier New';rctx.fillStyle='rgba(0,200,60,.5)';
+      rctx.textAlign='center';rctx.fillText(c.id,c.gx,c.gy);
+    }
+  });
+
+  // Trade route
+  if(rSelected&&RMKT[rSelected]&&rRouteActive&&rRouteProgress>0){
+    var m=RMKT[rSelected];
+    var ex=EGYPT.x,ey=EGYPT.y,tx=m.x,ty=m.y;
+    var cp1x=ex-25,cp1y=(ey+ty)/2-15,cp2x=tx+20,cp2y=(ey+ty)/2+15;
+    var prog=Math.min(rRouteProgress,1);
+    rctx.save();
+    rctx.beginPath();
+    var pts=60;
+    for(var pi=0;pi<=pts*prog;pi++){
+      var t=pi/pts;
+      var bx=Math.pow(1-t,3)*ex+3*Math.pow(1-t,2)*t*cp1x+3*(1-t)*t*t*cp2x+t*t*t*tx;
+      var by=Math.pow(1-t,3)*ey+3*Math.pow(1-t,2)*t*cp1y+3*(1-t)*t*t*cp2y+t*t*t*ty;
+      if(pi===0) rctx.moveTo(bx,by); else rctx.lineTo(bx,by);
+    }
+    rctx.strokeStyle='rgba(250,100,50,0.85)';rctx.lineWidth=1.5;
+    rctx.shadowColor='rgba(250,100,50,0.5)';rctx.shadowBlur=5;rctx.stroke();
+    rctx.shadowBlur=0;
+    if(prog>0.5){
+      var mt=0.5;
+      var mx2=Math.pow(1-mt,3)*ex+3*Math.pow(1-mt,2)*mt*cp1x+3*(1-mt)*mt*mt*cp2x+mt*mt*mt*tx;
+      var my2=Math.pow(1-mt,3)*ey+3*Math.pow(1-mt,2)*mt*cp1y+3*(1-mt)*mt*mt*cp2y+mt*mt*mt*ty;
+      rctx.font='bold 6px Courier New';rctx.fillStyle='rgba(250,180,50,.9)';
+      rctx.textAlign='center';rctx.shadowColor='rgba(250,180,50,.4)';rctx.shadowBlur=3;
+      rctx.fillText(m.dist,mx2,my2-7);
+      rctx.fillText('ETA: '+m.eta,mx2,my2+3);
+      rctx.shadowBlur=0;
+    }
+    rctx.restore();
+  }
+
+  // Sweep beam
+  if(rScanning){
+    rctx.save();rctx.translate(RCX,RCY);
+    var sw=Math.PI/5.5;
+    for(var si=0;si<14;si++){
+      var sa=rSweep-(si*sw/14);
+      var salpha=(1-si/14)*0.22;
+      rctx.beginPath();rctx.moveTo(0,0);rctx.arc(0,0,RR,sa,sa+sw/14);rctx.closePath();
+      rctx.fillStyle='rgba(0,255,65,'+salpha+')';rctx.fill();
+    }
+    rctx.beginPath();rctx.moveTo(0,0);
+    rctx.lineTo(Math.cos(rSweep)*RR,Math.sin(rSweep)*RR);
+    rctx.strokeStyle='rgba(0,255,65,.95)';rctx.shadowColor='#00ff41';rctx.shadowBlur=7;
+    rctx.lineWidth=1.6;rctx.stroke();rctx.shadowBlur=0;rctx.restore();
+  }
+
+  // Blips
+  rBlips=rBlips.filter(function(b){return Date.now()-b.born<2800;});
+  rBlips.forEach(function(b){
+    var age=Date.now()-b.born,alpha=1-age/2800,p=1+Math.sin(age/180)*0.4;
+    rctx.save();rctx.shadowColor='#00ff41';rctx.shadowBlur=10*alpha;
+    rctx.beginPath();rctx.arc(b.x,b.y,3*p,0,Math.PI*2);
+    rctx.fillStyle='rgba(0,255,65,'+alpha+')';rctx.fill();
+    rctx.beginPath();rctx.arc(b.x,b.y,6*p,0,Math.PI*2);
+    rctx.strokeStyle='rgba(0,255,65,'+(alpha*.45)+')';rctx.lineWidth=.7;rctx.stroke();
+    rctx.restore();
+  });
+
+  // Target marker
+  if(rSelected&&RMKT[rSelected]&&rSelected!='__ALL__'){
+    var rm=RMKT[rSelected],rt2=Date.now()/900,rrr=6+Math.sin(rt2)*2;
+    rctx.save();rctx.shadowColor='#facc15';rctx.shadowBlur=14;
+    rctx.beginPath();rctx.arc(rm.x,rm.y,rrr,0,Math.PI*2);
+    rctx.strokeStyle='rgba(250,204,21,.95)';rctx.lineWidth=1.6;rctx.stroke();
+    rctx.beginPath();rctx.arc(rm.x,rm.y,2.5,0,Math.PI*2);
+    rctx.fillStyle='#facc15';rctx.fill();rctx.shadowBlur=0;
+    rctx.font='bold 6px Courier New';rctx.fillStyle='rgba(250,204,21,.85)';
+    rctx.textAlign='center';rctx.shadowColor='#facc15';rctx.shadowBlur=4;
+    rctx.fillText(rm.name,rm.x,rm.y-13);rctx.shadowBlur=0;rctx.restore();
+  }
+
+  // Egypt origin
+  rctx.save();rctx.shadowColor='#f87171';rctx.shadowBlur=12;
+  var ep2=Date.now()/800;
+  rctx.beginPath();rctx.arc(EGYPT.x,EGYPT.y,5+Math.sin(ep2)*1.5,0,Math.PI*2);
+  rctx.strokeStyle='rgba(248,113,113,.9)';rctx.lineWidth=1.3;rctx.stroke();
+  rctx.beginPath();rctx.arc(EGYPT.x,EGYPT.y,2.5,0,Math.PI*2);
+  rctx.fillStyle='#f87171';rctx.fill();rctx.shadowBlur=0;
+  rctx.font='bold 6px Courier New';rctx.fillStyle='rgba(248,113,113,.8)';
+  rctx.textAlign='center';rctx.shadowColor='#f87171';rctx.shadowBlur=3;
+  rctx.fillText('PORT SAID',EGYPT.x,EGYPT.y-11);rctx.shadowBlur=0;rctx.restore();
+
+  rctx.save();rctx.shadowColor='#00ff41';rctx.shadowBlur=6;
+  rctx.beginPath();rctx.arc(RCX,RCY,2.5,0,Math.PI*2);
+  rctx.fillStyle='rgba(0,255,65,.6)';rctx.fill();rctx.restore();
+  rctx.restore();
+}
+
+function rIsInSweep(id){
+  var found=null;
+  RCOUNTRIES.forEach(function(c){if(c.id===id)found=c;});
+  if(!found)return false;
+  var mKey=rSelected;
+  var a=Math.atan2(found.gy-RCY,found.gx-RCX);
+  var d=((rSweep-a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+  return d<Math.PI/3;
+}
+
+function rUpdateStats(countryName){
+  var m=RMKT[countryName]||RMKT['__ALL__'];
+  var hs=document.getElementById('hs');
+  var hsCode=hs?hs.value||'081110':'081110';
+  var lbl=document.getElementById('radarSearchLabel');
+  if(lbl)lbl.textContent='HS '+hsCode+' → '+m.name;
+  var el=function(id,val){var e=document.getElementById(id);if(e)e.textContent=val;};
+  el('rStatSub',m.name+' PORT');
+  el('rImpVal','↑ '+m.imp);
+  el('rDistVal',m.km);
+  el('rPortName','Port Said → '+m.name);
+  el('rEta','ETA: '+m.eta);
+  el('rDutyVal',m.duty);
+  el('rDutyNote',m.dutyNote);
+  el('rCagrVal',m.cagr);
+  // map country to country ID
+  var countryMap={
+    'Germany':'DE','France':'FR','Netherlands':'NL','Italy':'IT',
+    'Spain':'ES','Poland':'PL','Sweden':'SE','Greece':'GR',
+    'Belgium':'BE','Austria':'AT','Czech Republic':'CZ','Romania':'RO',
+  };
+  rSelected=countryMap[countryName]||null;
+  rRouteProgress=0;rRouteActive=false;
+}
+
+function rSetDot(color,glow,blink){
+  var d=document.getElementById('radarDot');
+  if(!d)return;
+  d.style.background=color;
+  d.style.boxShadow=glow?'0 0 8px '+color:'none';
+  d.style.animation=blink?'radarBlink .5s ease-in-out infinite':'none';
+}
+
+// ── Public API called by dashboard ──
+window.radarOnCountryChange=function(countryName){
+  rUpdateStats(countryName);
+  rSetDot('#facc15','#facc15',false);
+  var st=document.getElementById('radarStatus');
+  if(st)st.textContent='TARGET: '+(RMKT[countryName]?RMKT[countryName].name:countryName);
+};
+
+window.radarStartScan=function(hsCode,countryName){
+  if(rScanning)return;
+  rScanning=true;rSweep=0;rRouteActive=true;rRouteProgress=0;
+  rUpdateStats(countryName||'__ALL__');
+  var lbl=document.getElementById('radarSearchLabel');
+  var hs2=hsCode||'';
+  if(lbl)lbl.textContent='HS '+hs2+' → SCANNING...';
+  rSetDot('#00ff41','#00ff41',true);
+  document.getElementById('radarDot').style.animation='radarBlink .5s ease-in-out infinite';
+  var pbar=document.getElementById('radarPbar');
+  var pfill=document.getElementById('radarPfill');
+  if(pbar)pbar.style.opacity='1';
+
+  var msgs=[
+    {t:'SCANNING KNOWLEDGE BASE...',p:12},
+    {t:'ITC TRADEMAP QUERY...',p:26},
+    {t:'UN COMTRADE DATA...',p:42},
+    {t:'TAVILY INTELLIGENCE...',p:58},
+    {t:'PRICING ENGINE...',p:73},
+    {t:'CLAUDE AI ANALYSIS...',p:88},
+    {t:'COMPILING REPORT...',p:96},
+  ];
+  var idx=0;
+  window._radarTick=setInterval(function(){
+    if(idx>=msgs.length){clearInterval(window._radarTick);return;}
+    var st=document.getElementById('radarStatus');
+    if(st)st.textContent=msgs[idx].t;
+    if(pfill)pfill.style.width=msgs[idx].p+'%';
+    rRouteProgress+=0.15;
+    idx++;
+  },650);
+};
+
+window.radarStopScan=function(){
+  rScanning=false;
+  if(window._radarTick)clearInterval(window._radarTick);
+  rRouteProgress=1;rRouteActive=true;
+  rSetDot('#4ade80','#4ade80',false);
+  document.getElementById('radarDot').style.animation='none';
+  var st=document.getElementById('radarStatus');
+  if(st)st.textContent='SCAN COMPLETE ◆';
+  var pfill=document.getElementById('radarPfill');
+  if(pfill)pfill.style.width='100%';
+};
+
+// Animation loop
+function rLoop(){rDraw();requestAnimationFrame(rLoop);}
+rLoop();
+
+// Inject blink keyframe
+var style=document.createElement('style');
+style.textContent='@keyframes radarBlink{0%,100%{opacity:1}50%{opacity:.2}}';
+document.head.appendChild(style);
+
+})();
+</script>
 
 </body></html>`);
     win.document.close();
@@ -2537,6 +2940,11 @@ ${htmlContent}
     const badge = qs("countryBadge");
     if (badge) {
       badge.textContent = country.isAll ? "🌍 27 دولة" : `${country.ar}`;
+    }
+    // Radar: update target
+    const sel = document.getElementById('country');
+    if(sel && typeof radarOnCountryChange==='function'){
+      radarOnCountryChange(sel.value);
     }
   }
 
