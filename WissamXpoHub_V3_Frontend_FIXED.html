@@ -1309,12 +1309,55 @@
   function updateProductName() {
     const hsEl    = qs("hs");
     const cntryEl = qs("country");
-    if (!hsEl) return; // element removed from dashboard
+    if (!hsEl) return;
     const hs      = hsEl.value.trim();
-    const product = hsProductMap[hs] || (hs.length >= 4 ? `Product (${hs})` : "—");
     const country = cntryEl ? cntryEl.value || "—" : "—";
 
-    if (qs("productNameBox")) if(qs("productNameBox"))qs("productNameBox").textContent = (typeof LANG !== "undefined" && LANG === "en" ? `Product: ${product}` : `اسم المنتج: ${product}`);
+    const validProduct = hsProductMap[hs];
+    const isValid = !!validProduct;
+    const product = validProduct || (hs.length >= 6 ? null : "—");
+
+    // تلوين الـ input حسب الحالة
+    if (hs.length >= 6) {
+      hsEl.style.borderColor = isValid ? "rgba(74,222,128,.6)" : "rgba(248,113,113,.6)";
+      hsEl.style.boxShadow   = isValid ? "0 0 0 2px rgba(74,222,128,.15)" : "0 0 0 2px rgba(248,113,113,.15)";
+    } else {
+      hsEl.style.borderColor = "";
+      hsEl.style.boxShadow   = "";
+    }
+
+    // productNameBox
+    const box = qs("productNameBox");
+    if (box) {
+      if (!hs || hs.length < 4) {
+        box.textContent = "";
+        box.style.color = "";
+      } else if (isValid) {
+        box.textContent = "✓ " + product;
+        box.style.color = "#4ade80";
+      } else if (hs.length >= 6) {
+        box.textContent = typeof LANG !== "undefined" && LANG === "en"
+          ? "✗ HS Code not registered — only Egyptian export products are supported"
+          : "✗ الكود غير مسجل — يدعم النظام المنتجات التصديرية المصرية فقط";
+        box.style.color = "#f87171";
+      } else {
+        box.textContent = typeof LANG !== "undefined" && LANG === "en"
+          ? "Enter 6-digit HS Code..."
+          : "أدخل 6 أرقام...";
+        box.style.color = "var(--muted)";
+      }
+    }
+
+    if (qs("statProduct")) qs("statProduct").textContent = product || hs || "—";
+    if (qs("statHs"))      qs("statHs").textContent      = hs || "—";
+    if (qs("statMarket"))  qs("statMarket").textContent  = country;
+    const badge = qs("countryBadge");
+    if (badge) {
+      badge.textContent = (cntryEl && cntryEl.value === "__ALL__") ? "🌍 27 دولة" : "";
+    }
+    if (qs("heroProduct")) qs("heroProduct").textContent = product || hs || "—";
+    if (qs("heroHs"))      qs("heroHs").textContent      = hs || "—";
+    if (qs("heroMarket"))  qs("heroMarket").textContent  = (cntryEl && cntryEl.value === "__ALL__") ? "EU-27" "en" ? `Product: ${product}` : `اسم المنتج: ${product}`);
     if (qs("statProduct"))    if(qs("statProduct"))qs("statProduct").textContent    = product;
     if (qs("statHs"))         if(qs("statHs"))qs("statHs").textContent         = hs || "—";
     if (qs("statMarket"))     if(qs("statMarket"))qs("statMarket").textContent     = country;
@@ -1676,6 +1719,33 @@
   async function runIntelligence() {
     const s = requireSavedSettings("aiBox");
     if (!s) return;
+
+    // ── HS Code Validation ──
+    const hsVal = (qs("hs") || {}).value || "";
+    const hsClean = hsVal.trim();
+    if (!hsClean || hsClean.length < 4) {
+      if(qs("aiBox")) qs("aiBox").textContent =
+        typeof LANG !== "undefined" && LANG === "en"
+          ? "✗ Please enter a valid HS Code before running analysis."
+          : "✗ أدخل كود HS قبل تشغيل التحليل.";
+      return;
+    }
+    if (!hsProductMap[hsClean]) {
+      if(qs("aiBox")) qs("aiBox").innerHTML =
+        typeof LANG !== "undefined" && LANG === "en"
+          ? `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
+              <div style="font-size:16px;font-weight:700;margin-bottom:8px;">✗ HS Code Not Supported</div>
+              <div style="font-size:13px;margin-bottom:8px;">Code <b>${hsClean}</b> is not registered in the system.</div>
+              <div style="font-size:12px;color:rgba(248,113,113,.7);">Only registered Egyptian export products are supported to ensure accurate analysis and avoid wasting API credits.</div>
+            </div>`
+          : `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
+              <div style="font-size:16px;font-weight:700;margin-bottom:8px;">✗ كود HS غير مسجل في النظام</div>
+              <div style="font-size:13px;margin-bottom:8px;">الكود <b>${hsClean}</b> غير مدعوم حالياً.</div>
+              <div style="font-size:12px;color:rgba(248,113,113,.7);">يدعم النظام المنتجات التصديرية المصرية المسجلة فقط — للحفاظ على دقة التحليل وعدم استهلاك رصيد الـ API.</div>
+              <div style="margin-top:10px;font-size:12px;color:rgba(248,113,113,.6);">للإضافة: تواصل مع الدعم عبر <a href="https://wa.me/201116415272" target="_blank" style="color:#25d366;">واتساب</a></div>
+            </div>`;
+      return;
+    }
 
     if(qs("aiBox"))qs("aiBox").textContent = "جارٍ تشغيل AI Export Advisor...";
     setButtonLoading("runBtn", true, "Running...");
