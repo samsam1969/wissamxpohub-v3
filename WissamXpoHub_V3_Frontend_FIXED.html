@@ -980,8 +980,7 @@
 
       <!-- Run Button -->
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-        <button type="button" id="runBtn" onclick="runIntelligence()"
-          style="flex:1;padding:15px;background:linear-gradient(135deg,#1d4ed8,#6366f1);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:800;font-family:'Cairo',Arial,sans-serif;cursor:pointer;box-shadow:0 6px 20px rgba(59,130,246,.35);transition:transform .13s,opacity .13s;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <button type="button" id="runBtn" onclick="runIntelligence()" disabled style="flex:1;padding:15px;background:rgba(80,80,100,0.5);border:none;border-radius:12px;color:rgba(255,255,255,.5);font-size:15px;font-weight:800;cursor:not-allowed;opacity:0.5;" title="أدخل كود HS مسجل أولاً">
           ▶ تشغيل Export Intelligence
         </button>
         <button type="button" onclick="resetDashboard()" class="ghost" style="padding:15px 18px;font-weight:800;" data-ar="→ عودة" data-en="← BACK" data-ar="→ عودة" data-en="← BACK" >← BACK</button>
@@ -1717,49 +1716,64 @@
 
   /* ─── RUN INTELLIGENCE ─── */
   async function runIntelligence() {
+
+    // ══════════════════════════════════════
+    // SECURITY CHECK 1: Must be logged in
+    // ══════════════════════════════════════
+    const token = localStorage.getItem("wx_access_token");
+    const email = localStorage.getItem("wx_user_email");
+    if (!token || !email) {
+      if(qs("aiBox")) qs("aiBox").innerHTML =
+        `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
+          <div style="font-size:16px;font-weight:700;margin-bottom:8px;">🔒 يجب تسجيل الدخول أولاً</div>
+          <div style="font-size:13px;">سجّل دخولك بحسابك في Supabase لاستخدام التحليل.</div>
+        </div>`;
+      return;
+    }
+
+    // ══════════════════════════════════════
+    // SECURITY CHECK 2: HS Code must be registered
+    // ══════════════════════════════════════
+    const hsEl  = qs("hs");
+    const hsVal = hsEl ? hsEl.value.trim() : "";
+    if (!hsVal || hsVal.length < 4) {
+      if(qs("aiBox")) qs("aiBox").innerHTML =
+        `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
+          <div style="font-size:16px;font-weight:700;margin-bottom:8px;">⚠️ أدخل كود HS</div>
+          <div style="font-size:13px;">يجب إدخال كود HS من 6 أرقام قبل التحليل.</div>
+        </div>`;
+      return;
+    }
+    if (!hsProductMap[hsVal]) {
+      if(qs("aiBox")) qs("aiBox").innerHTML =
+        `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
+          <div style="font-size:16px;font-weight:700;margin-bottom:8px;">🚫 كود غير مسجل: ${hsVal}</div>
+          <div style="font-size:13px;margin-bottom:8px;">هذا الكود غير مدعوم في النظام حالياً.</div>
+          <div style="font-size:12px;color:rgba(248,113,113,.7);">يدعم النظام المنتجات التصديرية المصرية المسجلة فقط للحفاظ على دقة التحليل وتوفير رصيد API.</div>
+          <div style="margin-top:10px;font-size:12px;">لطلب إضافة منتج: <a href="https://wa.me/201116415272" target="_blank" style="color:#25d366;font-weight:700;">واتساب</a></div>
+        </div>`;
+      return;
+    }
+
+    // ══════════════════════════════════════
+    // SECURITY CHECK 3: Backend settings
+    // ══════════════════════════════════════
     const s = requireSavedSettings("aiBox");
     if (!s) return;
-
-    // ── HS Code Validation ──
-    const hsVal = (qs("hs") || {}).value || "";
-    const hsClean = hsVal.trim();
-    if (!hsClean || hsClean.length < 4) {
-      if(qs("aiBox")) qs("aiBox").textContent =
-        typeof LANG !== "undefined" && LANG === "en"
-          ? "✗ Please enter a valid HS Code before running analysis."
-          : "✗ أدخل كود HS قبل تشغيل التحليل.";
-      return;
-    }
-    if (!hsProductMap[hsClean]) {
-      if(qs("aiBox")) qs("aiBox").innerHTML =
-        typeof LANG !== "undefined" && LANG === "en"
-          ? `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
-              <div style="font-size:16px;font-weight:700;margin-bottom:8px;">✗ HS Code Not Supported</div>
-              <div style="font-size:13px;margin-bottom:8px;">Code <b>${hsClean}</b> is not registered in the system.</div>
-              <div style="font-size:12px;color:rgba(248,113,113,.7);">Only registered Egyptian export products are supported to ensure accurate analysis and avoid wasting API credits.</div>
-            </div>`
-          : `<div style="color:#f87171;padding:16px;border:1px solid rgba(248,113,113,.3);border-radius:10px;background:rgba(248,113,113,.05);">
-              <div style="font-size:16px;font-weight:700;margin-bottom:8px;">✗ كود HS غير مسجل في النظام</div>
-              <div style="font-size:13px;margin-bottom:8px;">الكود <b>${hsClean}</b> غير مدعوم حالياً.</div>
-              <div style="font-size:12px;color:rgba(248,113,113,.7);">يدعم النظام المنتجات التصديرية المصرية المسجلة فقط — للحفاظ على دقة التحليل وعدم استهلاك رصيد الـ API.</div>
-              <div style="margin-top:10px;font-size:12px;color:rgba(248,113,113,.6);">للإضافة: تواصل مع الدعم عبر <a href="https://wa.me/201116415272" target="_blank" style="color:#25d366;">واتساب</a></div>
-            </div>`;
-      return;
-    }
 
     if(qs("aiBox"))qs("aiBox").textContent = "جارٍ تشغيل AI Export Advisor...";
     setButtonLoading("runBtn", true, "Running...");
     showLoader("aiLoader", true);
     // Radar: start scan
-    var _radarHs = (document.getElementById('hs')||{}).value||'';
+    var _radarHs = hsVal;
     var _radarCountry = (document.getElementById('country')||{}).value||'__ALL__';
     if(typeof radarStartScan==='function') radarStartScan(_radarHs, _radarCountry);
 
     try {
-      const token = await getFreshToken();
+      const freshToken = await getFreshToken();
       const res   = await fetchWithTimeout(`${s.backendUrl}/api/ai/export-advisor`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${freshToken}` },
         body: JSON.stringify(buildPayload())
       });
 
@@ -1778,13 +1792,9 @@
         : data.advisor?.text ?? JSON.stringify(data, null, 2);
 
       if(qs("aiBox"))qs("aiBox").innerHTML = marked.parse(text);
-      // Render data sources panel
-      if (data.sourcesMetadata) renderSourcesPanel(data.sourcesMetadata);
-      // Render data sources panel
       if (data.sourcesMetadata) renderSourcesPanel(data.sourcesMetadata);
       qs("aiBox")&&qs("aiBox").classList.add("fade-in");
       setTimeout(() => qs("aiBox")&&qs("aiBox").classList.remove("fade-in"), 400);
-
       updateStats(data);
       renderCitationPanel(data.sourcesUsed || [], data.sourceUrls || []);
       renderExportChart(text);
@@ -1798,7 +1808,7 @@
     }
   }
 
-  /* ─── GENERATE BUYER MESSAGE ─── */
+    /* ─── GENERATE BUYER MESSAGE ─── */
   /* ── Buyers data store ── */
   let buyersData = [];
 
