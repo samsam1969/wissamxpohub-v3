@@ -347,34 +347,75 @@ async def get_export_advice(
     except Exception as e:
         real_data = f"[Comtrade unavailable: {e}]"
 
-    # -- Layer 2: Tavily Web Intelligence
+    # -- Layer 2: Tavily Web Intelligence (Enhanced)
     web_data = ""
     tavily_sources = []
     try:
-        from services.tavily_service import get_market_prices, get_trade_trends, get_shipping_rates
+        from services.tavily_service import (
+            get_market_prices, get_trade_trends, get_shipping_rates,
+            get_regulations, get_competitors, get_fob_price_egypt
+        )
         if product and target_market:
-            prices   = get_market_prices(product, hs_code or "", target_market)
-            trends   = get_trade_trends(product, hs_code or "", target_market)
-            shipping = get_shipping_rates(product, "Egypt", target_market)
-            # Extract shipping cost from Tavily
-            shipping_answer = shipping.get("answer", "")
             import re as re_mod
+
+            # 2a. Market prices
+            prices = get_market_prices(product, hs_code or "", target_market)
+
+            # 2b. Trade trends
+            trends = get_trade_trends(product, hs_code or "", target_market)
+
+            # 2c. Shipping rates
+            shipping = get_shipping_rates(product, "Egypt", target_market)
+            shipping_answer = shipping.get("answer", "")
             ship_match = re_mod.search(r'USD\s*([\d,]+)', shipping_answer)
             tavily_shipping_per_container = int(ship_match.group(1).replace(",","")) if ship_match else None
             tavily_shipping_per_ton = round(tavily_shipping_per_container / 20, 0) if tavily_shipping_per_container else None
 
+            # 2d. Regulations (NEW)
+            regs = get_regulations(product, hs_code or "", target_market)
+
+            # 2e. Competitors (NEW)
+            comps = get_competitors(product, hs_code or "", target_market)
+
+            # 2f. FOB Egypt price (NEW)
+            fob_data = get_fob_price_egypt(product, hs_code or "")
+
             web_data = f"""
-=== Tavily Web Intelligence (2024-2026) ===
-[Market Prices] {prices.get("answer", "")}
-[Trade Trends]  {trends.get("answer", "")}
-[Shipping Rates - Verified from Hapag-Lloyd/Maersk]
-Container cost: {f"~/container" if tavily_shipping_per_container else "unavailable"}
-Per ton estimate: {f"~/ton (based on 20t container)" if tavily_shipping_per_ton else "unavailable"}
-Raw answer: {shipping_answer}
+=== Tavily Web Intelligence (Real-Time 2024-2026) ===
+
+[MARKET PRICES & DEMAND]
+{prices.get("answer", "No price data found")}
+{chr(10).join(r["content"][:400] for r in prices.get("results",[])[:3] if r.get("score",0)>0.4)}
+
+[TRADE TRENDS & STATISTICS]
+{trends.get("answer", "No trend data found")}
+{chr(10).join(r["content"][:400] for r in trends.get("results",[])[:3] if r.get("score",0)>0.4)}
+
+[SHIPPING RATES - Port Said → {target_market}]
+{shipping_answer or "No shipping data found"}
+Container: {"$"+str(tavily_shipping_per_container) if tavily_shipping_per_container else "unavailable"}
+Per ton: {"$"+str(tavily_shipping_per_ton) if tavily_shipping_per_ton else "unavailable"}
+
+[EU REGULATIONS & CERTIFICATES]
+{regs.get("answer", "No regulation data found")}
+{chr(10).join(r["content"][:400] for r in regs.get("results",[])[:2] if r.get("score",0)>0.4)}
+
+[COMPETITORS & MARKET SHARE]
+{comps.get("answer", "No competitor data found")}
+{chr(10).join(r["content"][:300] for r in comps.get("results",[])[:2] if r.get("score",0)>0.4)}
+
+[FOB PRICE - EGYPT]
+{fob_data.get("answer", "No FOB data found")}
 """
-            for r in prices.get("results", []) + trends.get("results", []):
-                if r.get("url") and r.get("score", 0) > 0.5:
-                    tavily_sources.append({"name": r.get("title",""), "url": r.get("url",""), "type": "tavily"})
+            # Collect sources
+            for section in [prices, trends, shipping, regs, comps, fob_data]:
+                for r in section.get("results", []):
+                    if r.get("url") and r.get("score", 0) > 0.45:
+                        tavily_sources.append({
+                            "name": r.get("title",""),
+                            "url":  r.get("url",""),
+                            "type": "tavily"
+                        })
     except Exception as e:
         web_data = f"[Tavily unavailable: {e}]"
 
