@@ -1,76 +1,74 @@
 ﻿import os, requests
+from datetime import datetime
 
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-TAVILY_URL = "https://api.tavily.com/search"
+TAVILY_API_KEY = os.getenv('TAVILY_API_KEY')
+TAVILY_URL = 'https://api.tavily.com/search'
 
-def search_trade_data(query: str, max_results: int = 5) -> dict:
+def _tavily_search(query, domains=None, max_results=7, depth='advanced'):
     try:
-        res = requests.post(TAVILY_URL, json={
-            "api_key": TAVILY_API_KEY,
-            "query": query,
-            "search_depth": "advanced",
-            "max_results": max_results,
-            "include_answer": True,
-            "include_domains": [
-                "trademap.org", "comtrade.un.org",
-                "worldbank.org", "access2markets.ec.europa.eu",
-                "cbi.eu", "eurostat.ec.europa.eu",
-                "intracen.org", "unctad.org"
-            ]
-        }, timeout=15)
-        data = res.json()
-        return {
-            "answer": data.get("answer", ""),
-            "results": [
-                {
-                    "title":   r.get("title", ""),
-                    "url":     r.get("url", ""),
-                    "content": r.get("content", "")[:500],
-                    "score":   r.get("score", 0)
-                }
-                for r in data.get("results", [])
-            ]
+        payload = {
+            'api_key': TAVILY_API_KEY,
+            'query': query,
+            'search_depth': depth,
+            'max_results': max_results,
+            'include_answer': True,
         }
-    except Exception as e:
-        return {"answer": "", "results": [], "error": str(e)}
-
-def get_shipping_rates(product: str, origin: str, destination: str) -> dict:
-    query = f"sea freight cost refrigerated container {origin} to {destination} 2025 USD per container"
-    try:
-        import requests as req
-        res = req.post("https://api.tavily.com/search", json={
-            "api_key": TAVILY_API_KEY,
-            "query": query,
-            "search_depth": "advanced",
-            "max_results": 3,
-            "include_answer": True,
-            "include_domains": [
-                "freightos.com", "xeneta.com",
-                "drewry.co.uk", "clarksons.com",
-                "hapag-lloyd.com", "maersk.com",
-                "ship-technology.com", "hellenicshippingnews.com"
-            ]
-        }, timeout=15)
+        # فقط نضيف domains لو صغيرة وموثوقة
+        if domains and len(domains) <= 5:
+            payload['include_domains'] = domains
+        res = requests.post(TAVILY_URL, json=payload, timeout=20)
         data = res.json()
-        return {
-            "answer": data.get("answer", ""),
-            "results": [
-                {
-                    "title":   r.get("title", ""),
-                    "url":     r.get("url", ""),
-                    "content": r.get("content", "")[:500],
-                    "score":   r.get("score", 0)
-                }
-                for r in data.get("results", [])
-            ]
-        }
+        results = []
+        for r in data.get('results', []):
+            results.append({
+                'title':   r.get('title', ''),
+                'url':     r.get('url', ''),
+                'content': r.get('content', '')[:1200],
+                'score':   r.get('score', 0)
+            })
+        return {'answer': data.get('answer', ''), 'results': results, 'query': query}
     except Exception as e:
-        return {"answer": "", "results": [], "error": str(e)}
+        return {'answer': '', 'results': [], 'error': str(e)}
 
-def get_market_prices(product: str, hs_code: str, market: str) -> dict:
-    query = f"{product} HS {hs_code} import price {market} 2024 2025 market data USD"
-    return search_trade_data(query, max_results=5)
+def search_trade_data(query, max_results=7):
+    return _tavily_search(query, None, max_results)
 
-def get_trade_trends(product: str, hs_code: str, market: str) -> dict:
-    query = f"{product} HS {hs_code} exports {market} trade statistics 2024 2025"
-    return search_trade_data(query, max_results=5)
+def get_market_prices(product, hs_code, market):
+    year = datetime.now().year
+    q1 = f'{product} HS {hs_code} import price {market} {year} EUR USD per ton market data'
+    q2 = f'Egyptian {product} FOB export price 2024 2025 USD ton'
+    r1 = _tavily_search(q1, None, 5)
+    r2 = _tavily_search(q2, None, 4)
+    answers = [x for x in [r1.get('answer',''), r2.get('answer','')] if x]
+    return {
+        'answer': ' | '.join(answers)[:1000],
+        'results': r1.get('results',[])[:4] + r2.get('results',[])[:3]
+    }
+
+def get_trade_trends(product, hs_code, market):
+    year = datetime.now().year
+    q = f'{product} HS {hs_code} Egypt exports {market} statistics {year-1} {year} growth volume'
+    return _tavily_search(q, None, 7)
+
+def get_shipping_rates(product, origin, destination):
+    year = datetime.now().year
+    q1 = f'sea freight Port Said Egypt {destination} container cost {year} USD'
+    q2 = f'Egypt {destination} shipping rate reefer container {year}'
+    r1 = _tavily_search(q1, ['freightos.com','globy.com','searates.com'], 4)
+    if not r1.get('answer'):
+        r1 = _tavily_search(q2, None, 4)
+    return r1
+
+def get_regulations(product, hs_code, market):
+    year = datetime.now().year
+    q = f'{product} EU import requirements {market} {year} certificates food safety standards'
+    return _tavily_search(q, None, 6)
+
+def get_competitors(product, hs_code, market):
+    q = f'{product} top exporters {market} 2023 2024 market share countries comparison Egypt'
+    return _tavily_search(q, None, 6)
+
+def get_fob_price_egypt(product, hs_code):
+    year = datetime.now().year
+    q = f'Egypt {product} export price FOB {year} USD per ton current'
+    return _tavily_search(q, None, 5)
