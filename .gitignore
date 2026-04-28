@@ -8,3 +8,18 @@ uploads/
 
 *_BACKUP_*.html
 ExportIntelligence*.html
+
+# Temp scripts
+*.py.bak
+fix_*.py
+check_*.py
+test_*.py
+read_*.py
+add_*.py
+find_*.py
+show_*.py
+update_*.py
+verify*.py
+lock_*.py
+secure_*.py
+clean_*.py
