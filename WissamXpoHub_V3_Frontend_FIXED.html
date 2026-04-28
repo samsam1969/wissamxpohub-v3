@@ -1356,18 +1356,8 @@
     }
     if (qs("heroProduct")) qs("heroProduct").textContent = product || hs || "—";
     if (qs("heroHs"))      qs("heroHs").textContent      = hs || "—";
-    if (qs("heroMarket"))  qs("heroMarket").textContent  = (cntryEl && cntryEl.value === "__ALL__") ? "EU-27" "en" ? `Product: ${product}` : `اسم المنتج: ${product}`);
-    if (qs("statProduct"))    if(qs("statProduct"))qs("statProduct").textContent    = product;
-    if (qs("statHs"))         if(qs("statHs"))qs("statHs").textContent         = hs || "—";
-    if (qs("statMarket"))     if(qs("statMarket"))qs("statMarket").textContent     = country;
-    const badge = qs("countryBadge");
-    if (badge) {
-      badge.textContent = (cntryEl && cntryEl.value === "__ALL__") ? "🌍 27 دولة" : "";
-    }
-    if (qs("heroProduct")) if(qs("heroProduct"))qs("heroProduct").textContent = product;
-    if (qs("heroHs"))      if(qs("heroHs"))qs("heroHs").textContent      = hs || "—";
-    if (qs("heroMarket"))  if(qs("heroMarket"))qs("heroMarket").textContent  = (cntryEl && cntryEl.value === "__ALL__") ? "EU-27" : country;
-  
+    if (qs("heroMarket"))  qs("heroMarket").textContent  = (cntryEl && cntryEl.value === "__ALL__") ? "EU-27" : (cntryEl ? cntryEl.value : "");
+
     // ── Lock/Unlock Run Button ──
     const runBtn2 = document.getElementById("runBtn");
     if (runBtn2) {
