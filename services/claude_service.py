@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 from typing import Optional
 from dotenv import load_dotenv
+from services.products_registry import get_fob_dict, get_name, is_registered
 from services.gemini_service import gemini_prepare_data, gemini_extract_market_info
 
 load_dotenv()
@@ -61,6 +62,15 @@ EXPORT_ADVISOR_SYSTEM = """
 ---
 
 ## 2. حجم السوق والاتجاهات
+
+⚠️ تنبيه مهم للـ AI: ميّز دائماً بين نوعين من CAGR في القسم ده:
+- **CAGR قيمة (Value)**: نمو القيمة بالدولار — يتأثر بتقلبات السعر
+- **CAGR حجم (Volume)**: نمو الكمية بالطن — يعكس الطلب الفعلي
+السلبية في CAGR قيمة لا تعني تراجع الطلب — قد تعني انخفاض السعر مع زيادة الحجم.
+يجب توضيح النوعين بشكل منفصل في الجدول.
+
+
+
 | المؤشر | القيمة | السنة | المصدر | الثقة |
 |--------|--------|-------|--------|-------|
 | حجم الواردات | | | | |
@@ -206,13 +216,16 @@ def calculate_landed_cost(
     """
     # Freight estimates (USD/ton) Port Said → EU ports
     FREIGHT = {
-        "Netherlands": 85,  "Germany": 95,   "France": 90,
-        "Belgium": 88,      "Italy": 75,      "Spain": 70,
-        "Poland": 110,      "Austria": 105,   "Sweden": 115,
-        "Cyprus": 65,       "Greece": 60,     "Malta": 70,
-        "Ireland": 120,     "Denmark": 100,   "Finland": 120,
-        "Portugal": 80,     "Romania": 95,    "Bulgaria": 85,
-        "Czech Republic": 105, "Hungary": 100, "Luxembourg": 95,
+        # Reefer 40ft Port Said → EU 2026 (post-rate increase)
+        # Source: Hapag-Lloyd + Maersk Q1 2026
+        # 25-28 tons net per Reefer 40ft container
+        "Netherlands": 150,  "Germany": 155,   "France": 145,
+        "Belgium": 148,      "Italy": 120,      "Spain": 115,
+        "Poland": 170,       "Austria": 160,    "Sweden": 180,
+        "Cyprus": 95,        "Greece": 90,      "Malta": 105,
+        "Ireland": 190,      "Denmark": 162,    "Finland": 185,
+        "Portugal": 130,     "Romania": 145,    "Bulgaria": 130,
+        "Czech Republic": 165, "Hungary": 158,  "Luxembourg": 152,
     }
     # EU customs duty for common Egyptian products (0% with EU-Egypt Agreement)
     CUSTOMS = {
@@ -234,8 +247,8 @@ def calculate_landed_cost(
     }
 
     freight = FREIGHT.get(destination_country, 90)
-    insurance = exworks_price_per_ton * 0.008  # 0.8%
-    port_charges = 35  # USD/ton average
+    insurance = exworks_price_per_ton * 0.01  # 1.0% (perishable Reefer cargo)
+    port_charges = 58  # USD/ton — EU ports 2026 (Freightos benchmark)
     customs_rate = 0.0  # Egypt has 0% with EU-Egypt Agreement
     vat_rate = VAT.get(destination_country, 10.0) / 100
 
@@ -422,14 +435,7 @@ Per ton: {"$"+str(tavily_shipping_per_ton) if tavily_shipping_per_ton else "unav
     # ── Layer 3: Pricing engine
     pricing_data = ""
     try:
-        FOB_DEFAULTS = {
-            "081110": 550, "081120": 600, "081190": 580,
-            "080510": 350, "080520": 380, "080550": 360,
-            "080410": 420, "080440": 600, "080430": 800,
-            "070200": 300, "070310": 250, "070320": 300,
-            "100630": 400, "160414": 1200, "090111": 2500,
-            "060310": 800, "060390": 700,
-        }
+        FOB_DEFAULTS = get_fob_dict()  # ← from products_registry.py (single source of truth)
         hs6 = (hs_code or "")[:6]
         base_fob = FOB_DEFAULTS.get(hs6, 500)
         # Override with real TradeMap unit value if available
